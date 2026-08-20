@@ -1,0 +1,8 @@
+opensearch-py
+fastapi
+uvicorn
+pydantic
+pdfplumber
+python-dotenv
+openai
+streamlit

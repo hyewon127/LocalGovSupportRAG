@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.example
+.idea/
+data/raw/*.pdf
+*.log
+확인용/
