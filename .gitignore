@@ -2,7 +2,7 @@
 __pycache__/
 *.pyc
 .env
-.env.example
+.env
 .idea/
 data/raw/*.pdf
 *.log
