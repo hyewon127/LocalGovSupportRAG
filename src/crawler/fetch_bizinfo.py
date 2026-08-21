@@ -4,14 +4,12 @@ import os
 import re
 import csv
 import time
+from collections import Counter  # 확장자별 개수를 자동으로 세어주는 딕셔너리 (아래 확장자 확인용)
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from urllib import response
 
 import requests
 from dotenv import load_dotenv
-from pathlib import Path
-from openai.lib.azure import API_KEY_SENTINEL
 # %%
 #0. 환경변수 : 키 값 설정
 load_dotenv()
@@ -20,11 +18,13 @@ API_KEY = os.getenv("BIZINFO_API_KEY")
 #기업마당 API 주소
 BASE_URL = "https://www.bizinfo.go.kr/uss/rss/bizinfoApi.do"
 
-#수집 대상 지역
-TARGET_REGIONS = ["서울", "경기", "강원도", "충북", "충남", "경북", "경남", "전남광주", "전북" ,"부산","대구","세종","인천"]
+#수집 대상 지역 / 추후 데이터 추가 예정(여기에 "지역명") 넣기
+TARGET_REGIONS = ["서울"]
 
 #파일 ROOT 확인(parents 상위 폴더로 몇번 가는지 확인)
-PROJECT_ROOT = Path.cwd().resolve().parents[2]
+#Path.cwd() 는 "실행 위치(현재 작업 폴더)"에 따라 결과가 달라져서 위험함
+#-> __file__(이 파일 자신의 경로) 기준으로 고정해서 어디서 실행해도 항상 같은 결과가 나오게 함
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 RAW_DIR = PROJECT_ROOT / "data" / "raw"
 # 폴더가 없을 경우 자동으로 만들어줌
 RAW_DIR.mkdir(parents=True, exist_ok=True)
@@ -135,7 +135,7 @@ def collect_region(hashtag: str, metadata_rows: list) -> None:
             #확장자 추출: 서버에서 확장자가 .pdf 등을 추출하고 없으면 기본값 .pdf 사용
             ext = Path(item["printFileNm"]).suffix or ".pdf"
             # 파일명에 못쓰는 특수 문자 제거
-            safe_id = re.sub(r"[^\w\-]", "_", item["pblancId"]
+            safe_id = re.sub(r"[^\w\-]", "_", item["pblancId"])
             save_path = RAW_DIR / f"{hashtag}_{safe_id}{ext}"
 
             ok = download_file(item["printFlpthNm"], save_path)
@@ -159,7 +159,7 @@ def collect_region(hashtag: str, metadata_rows: list) -> None:
         # 전체 건수를 받았거나, 마지막 페이지 개수가 pageUnit 보다 적으면 종료
         if collected >= tot_cnt or len(items) < PAGE_UNIT:
             break
-
+        # 다음 페이지를 가져오기 위해 페이지 번호를 1씩 증가함.
         page_index += 1
         # 서버에 연속으로 요청하지 않게 쉬어가는 시간(토큰 에방)
         time.sleep(0.3)
@@ -173,13 +173,29 @@ def main():
         collect_region(region, all_metadata)
 
     #메타데이터 CSV 로 기록
+    #RAW_DIR 폴더안에 metadata.csv
     csv_path = RAW_DIR / "metadata.csv"
+    #csv 파일 설정
     with open(csv_path, "w", newline="", encoding="utf-8-sig") as f:
+        #칸 설정
         writer = csv.DictWriter(f, fieldnames=all_metadata[0].keys())
         writer.writeheader()
+        #csv 내용 넣기
         writer.writerows(all_metadata)
 
     print(f"\n {len(all_metadata)}건 수집 완료 -> {csv_path}")
+
+    #확장자별 수집 현황 확인 (printFlpthNm 이 "항상 PDF"라는 보장이 없어서, hwp 등이
+    #얼마나 섞여있는지 실제로 받은 결과 기준으로 확인함 - 전처리 단계 설계에 참고)
+    ext_counter = Counter()
+    for row in all_metadata:
+        if row["downloaded"]:
+            ext_counter[Path(row["file_path"]).suffix.lower()] += 1
+
+    print("\n=== 확장자별 수집 현황 ===")
+    for ext, count in ext_counter.most_common():
+        print(f"  {ext}: {count}건")
+
 
 if __name__ == "__main__":
     main()
