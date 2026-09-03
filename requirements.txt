@@ -6,3 +6,5 @@ pdfplumber
 python-dotenv
 openai
 streamlit
+tiktoken
+sentence-transformers
