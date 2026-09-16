@@ -2,8 +2,9 @@
 __pycache__/
 *.pyc
 .env
-.env.example
+.env
 .idea/
-data/raw/*.pdf
+data/raw/
+data/processed/
 *.log
 확인용/
