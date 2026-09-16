@@ -10,3 +10,4 @@ tiktoken
 sentence-transformers
 requests
 PyMuPDF
+olefile
