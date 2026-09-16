@@ -6,3 +6,4 @@ pdfplumber
 python-dotenv
 openai
 streamlit
+requests
