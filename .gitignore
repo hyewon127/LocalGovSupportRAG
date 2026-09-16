@@ -4,6 +4,7 @@ __pycache__/
 .env
 .env
 .idea/
-data/raw/*.pdf
+data/raw/
+data/processed/
 *.log
 확인용/
