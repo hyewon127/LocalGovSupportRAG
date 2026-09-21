@@ -5,7 +5,9 @@ pydantic
 pdfplumber
 python-dotenv
 openai
-sentence-transformers
 streamlit
+tiktoken
+sentence-transformers
 requests
 PyMuPDF
+olefile
