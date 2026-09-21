@@ -29,13 +29,14 @@
 #   두 방식을 나란히 비교해본 결과를 바탕으로 내린 결정입니다.
 
 import json
-import os
 import re
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
 from openai import OpenAI
+
+# LLM 접속 설정(업체/모델명)은 llm_client.py 한 곳에서 관리합니다 (분석모델 정의서 2.4 결정: Upstage).
+from llm_client import LLM_MODEL, get_llm_client
 
 # ── src/indexing/config.py 재사용을 위한 경로 설정 ───────────────────
 # src/indexing/*.py들은 전부 "from config import ..."라는 같은 폴더 기준 import를 쓰는데,
@@ -49,8 +50,6 @@ if str(_INDEXING_DIR) not in sys.path:
     sys.path.insert(0, str(_INDEXING_DIR))
 
 from config import INDEX_NAME, check_connection, get_client  # noqa: E402 (경로 설정 뒤에 와야 하는 import)
-
-load_dotenv()  # 프로젝트 루트 .env에서 OPENAI_API_KEY를 읽어옴 (config.py도 동일하게 처리)
 
 
 # ── 후보값 스냅샷 (2026-09-21, chunks.json 3,884건 기준 실데이터로 확인) ──
@@ -154,40 +153,32 @@ def _build_slot_function_schema(region_values: list[str], category_values: list[
     }
 
 
-# [주의] 모델명은 계정/시점에 따라 사용 가능 여부가 달라질 수 있습니다. 이 이름으로 에러가 나면
-# client.models.list()로 지금 이 계정에서 실제로 쓸 수 있는 모델 목록을 확인해서 바꿔보세요.
-CHAT_MODEL_NAME = "gpt-4o-mini"
-
-
 def _extract_slots_llm(query: str, client: OpenAI, region_values: list[str], category_values: list[str]) -> dict:
     """
-    입력: 사용자 자유 질의, OpenAI 클라이언트, region/category 후보값
+    입력: 사용자 자유 질의, LLM 클라이언트(llm_client.get_llm_client()), region/category 후보값
     출력: _extract_slots_regex()와 동일한 형태의 dict
-    동작: tool_choice로 "무조건 extract_search_slots 함수를 호출해라"라고 강제합니다.
+    동작: tool_choice="required"로 "반드시 도구(함수)를 호출해라"라고 강제합니다.
           (강제하지 않으면 모델이 함수 호출 대신 그냥 일반 텍스트로 답해버릴 수 있음 - function calling에서
           자주 나는 실수라 명시적으로 막아둠)
+          특정 함수 이름을 지정하는 {"type":"function","function":{"name":...}} 형식 대신 "required"를
+          쓴 이유: 도구가 1개뿐이라 의미는 완전히 같고, "required"는 OpenAI 호환 API(Upstage 등)들이
+          더 널리 지원하는 형식이라 업체를 바꿔도 안전합니다.
     """
     schema = _build_slot_function_schema(region_values, category_values)
     response = client.chat.completions.create(
-        model=CHAT_MODEL_NAME,
+        model=LLM_MODEL,
         messages=[
             {"role": "system", "content": "너는 지자체 지원사업 검색 챗봇의 질의 분석기다."},
             {"role": "user", "content": query},
         ],
         tools=[schema],
-        tool_choice={"type": "function", "function": {"name": "extract_search_slots"}},
+        tool_choice="required",
+        temperature=0,  # 슬롯 추출은 "정답이 하나"인 분류 작업이라 답변 생성(0.2)보다 더 결정적으로 둠
     )
     tool_call = response.choices[0].message.tool_calls[0]
     raw = json.loads(tool_call.function.arguments)  # "이 인자로 호출하세요"라는 JSON 문자열 -> dict로 변환
     raw["region"] = raw.get("region") or None  # 빈 문자열은 "없음"과 같은 의미이므로 None으로 통일
     return raw
-
-
-def get_openai_client() -> OpenAI | None:
-    """OPENAI_API_KEY가 없으면 None을 반환합니다 - LLM 폴백 없이 정규식만으로도 동작해야 하므로,
-    이 모듈을 import하는 것만으로 API 키를 강제하지 않기 위함입니다."""
-    api_key = os.getenv("OPENAI_API_KEY")
-    return OpenAI(api_key=api_key) if api_key else None
 
 
 # ── 공개 함수: 정규식 우선, 실패 시 LLM 폴백 ─────────────────────────
@@ -201,8 +192,8 @@ def extract_slots(
     입력: query - 사용자 자유 질의
           candidates - {"region": [...], "category": [...]} (없으면 하드코딩 스냅샷 사용.
                        fetch_candidate_values()로 얻은 최신값을 넘기는 걸 권장)
-          llm_client - OpenAI 클라이언트 (없으면 .env의 OPENAI_API_KEY로 자동 생성 시도.
-                       그래도 없으면 LLM 폴백을 건너뛰고 정규식 결과만 반환)
+          llm_client - LLM 클라이언트 (없으면 llm_client.get_llm_client()로 자동 생성 시도.
+                       키가 없으면 LLM 폴백을 건너뛰고 정규식 결과만 반환)
     출력: {"region": str|None, "categories": list[str], "target_keywords": list[str]}
 
     동작: 정규식(방식 A)을 먼저 시도 -> region/categories/target_keywords 중 하나라도 잡혔으면
@@ -216,7 +207,7 @@ def extract_slots(
     if slots["region"] or slots["categories"] or slots["target_keywords"]:
         return slots
 
-    client = llm_client if llm_client is not None else get_openai_client()
+    client = llm_client if llm_client is not None else get_llm_client()
     if client is None:
         return slots  # LLM을 쓸 수 없으면 (정규식이 아무것도 못 찾은) 빈 결과라도 그대로 반환
 
