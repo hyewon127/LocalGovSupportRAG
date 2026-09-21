@@ -47,6 +47,15 @@ DEFAULT_TOP_K = 5  # 최종적으로 LLM에 넘길 문서 수
 # top_k(5)의 4배 정도면 실제로 순위가 뒤바뀌는 경우를 대부분 커버하면서도 쿼리 비용은 작습니다.
 CANDIDATE_POOL_SIZE = 20
 
+# [실데이터로 발견한 문제 - 2026-09-21] "2026년 중앙부처 및 지자체 창업지원사업 통합 공고"처럼
+# 수백 개 지원사업을 한 PDF에 몰아넣은 "통합 공고" 문서가 청크를 수십 개씩 만들어내는데, 이런
+# 문서는 청크마다 전부 category="창업"이라 창업 관련 질의에 전부 높은 점수를 받습니다. top_k를
+# 그냥 점수순으로 자르면 실제로 top-5가 "서로 다른 사업 5개"가 아니라 "같은 문서의 청크 5개"가
+# 되어버리는 걸 실행해보고 확인함 - LLM에게 사실상 근거 문서 1개만 준 것과 같아지고, 평가 설계
+# (분석모델 정의서 2.5)의 Hit@5/MRR도 "다른 사업이 정답인 질의"에서 깎입니다. 그래서 최종 top_k를
+# 채울 때 같은 program_id는 이 값까지만 허용해서 강제로 다양성을 줍니다.
+MAX_CHUNKS_PER_PROGRAM = 2
+
 # 검색 결과 화면/LLM 컨텍스트에 필요한 필드만 가져옵니다. embedding(768개 숫자)은 응답 크기만
 # 키우고 여기서는 안 쓰이므로 제외합니다.
 _SOURCE_FIELDS = [
@@ -180,7 +189,20 @@ def hybrid_search(
         })
 
     combined.sort(key=lambda r: r["score"], reverse=True)
-    return combined[:top_k]
+
+    # 다양성 확보: 점수순으로 훑으면서 같은 program_id는 MAX_CHUNKS_PER_PROGRAM개까지만 채택.
+    # (위 MAX_CHUNKS_PER_PROGRAM 주석 참고 - 실제 "통합 공고" 문서로 확인된 문제에 대한 대응)
+    selected: list[dict] = []
+    count_by_program: dict[str, int] = {}
+    for r in combined:
+        program_id = r["program_id"]
+        if count_by_program.get(program_id, 0) >= MAX_CHUNKS_PER_PROGRAM:
+            continue
+        selected.append(r)
+        count_by_program[program_id] = count_by_program.get(program_id, 0) + 1
+        if len(selected) >= top_k:
+            break
+    return selected
 
 
 # ── 수동 확인용 실행 블록 ────────────────────────────────────────────
