@@ -2,8 +2,15 @@
 #
 # 실행 방법 (프로젝트 루트에서, OpenSearch가 먼저 떠 있어야 함):
 #   .venv\Scripts\python.exe -m uvicorn src.api.main:app --port 8000
-#   -> http://localhost:8000/docs 에서 API 문서(Swagger UI)를 보고 바로 호출해볼 수 있습니다.
+#   -> http://127.0.0.1:8000/docs 에서 API 문서(Swagger UI)를 보고 바로 호출해볼 수 있습니다.
 #   포트 8000은 분석모델 정의서 1.2 "포트번호: 8000 (FastAPI)"를 따른 것입니다.
+#   서버 준비까지 약 20초 걸립니다 (대부분 임베딩 모델 로딩 - 아래 lifespan 참고).
+#
+#   [주의 - localhost 말고 127.0.0.1로 부를 것, 2026-09-22 실측]
+#   uvicorn은 기본적으로 IPv4(127.0.0.1)에만 연결을 받습니다. 그런데 Windows에서 "localhost"는 IPv6(::1)를
+#   먼저 시도하고, 거절당한 뒤 IPv4로 넘어가기까지 약 2초를 기다립니다. 같은 /health 요청이
+#   127.0.0.1로는 14~30ms, localhost로는 2,058~2,069ms 걸렸습니다 - 응답시간 목표(5초)의 40%를 주소 해석에만 씀.
+#   그래서 Streamlit(WBS 6.4)의 API 주소 기본값도 127.0.0.1로 둡니다.
 #
 # [폴더 구조] 분석모델 정의서 1.1 시스템 구조도의 "FastAPI 서버 (RAG 오케스트레이션)" 칸을 아래처럼 나눴습니다.
 #   main.py            - 앱 생성, 서버 시작 시 자원 준비(lifespan), 공통 예외 처리, /health
