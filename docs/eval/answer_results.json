@@ -1,0 +1,531 @@
+{
+  "evaluated_at": "2026-09-22T11:25:54",
+  "eval_set_version": "2026-09-22",
+  "current_threshold": 0.77,
+  "guardrail": {
+    "records": [
+      {
+        "id": "Q01",
+        "variant": "original",
+        "text": "장사가 너무 안 돼서 가게를 정리하려고 하는데 소상공인 폐업 지원 받을 수 있나요?",
+        "max_knn_score": 0.86857677,
+        "retrieval_ms": 22466.188599995803
+      },
+      {
+        "id": "Q01",
+        "variant": "paraphrase",
+        "text": "매출이 계속 줄어서 가게 문을 닫으려는데, 점포 철거비나 정리 비용을 도와주는 곳 있을까요?",
+        "max_knn_score": 0.8006621,
+        "retrieval_ms": 50.20820000208914
+      },
+      {
+        "id": "Q02",
+        "variant": "original",
+        "text": "소상공인인데 온라인 쇼핑몰에 입점해서 팔고 싶어요. 도와주는 사업 있어?",
+        "max_knn_score": 0.8565935,
+        "retrieval_ms": 47.38579998956993
+      },
+      {
+        "id": "Q02",
+        "variant": "paraphrase",
+        "text": "동네에서 작은 가게를 하는데 인터넷으로도 물건을 팔아보고 싶어요. 도와주는 제도 있나요?",
+        "max_knn_score": 0.79496354,
+        "retrieval_ms": 48.1283999979496
+      },
+      {
+        "id": "Q03",
+        "variant": "original",
+        "text": "라이브커머스 방송을 해보고 싶은데 제작비 지원해주는 곳 있나요",
+        "max_knn_score": 0.81585467,
+        "retrieval_ms": 43.24930004077032
+      },
+      {
+        "id": "Q03",
+        "variant": "paraphrase",
+        "text": "실시간 방송으로 상품을 소개하면서 파는 걸 해보고 싶은데 촬영비를 지원받을 수 있나요?",
+        "max_knn_score": 0.8123827,
+        "retrieval_ms": 49.85730000771582
+      },
+      {
+        "id": "Q04",
+        "variant": "original",
+        "text": "화장품 회사인데 일본 시장에 진출하고 싶어요",
+        "max_knn_score": 0.79435194,
+        "retrieval_ms": 43.29719999805093
+      },
+      {
+        "id": "Q04",
+        "variant": "paraphrase",
+        "text": "스킨케어 제품을 만드는 회사인데 도쿄 쪽 소비자들한테 팔아보고 싶어요",
+        "max_knn_score": 0.7582445,
+        "retrieval_ms": 47.438799985684454
+      },
+      {
+        "id": "Q05",
+        "variant": "original",
+        "text": "수출할 때 드는 해외 물류비나 배송비를 지원받을 수 있을까요?",
+        "max_knn_score": 0.85467505,
+        "retrieval_ms": 42.61689999839291
+      },
+      {
+        "id": "Q05",
+        "variant": "paraphrase",
+        "text": "해외 바이어에게 제품을 보낼 때 드는 운송비가 부담돼요. 비용을 보전해주는 제도가 있을까요?",
+        "max_knn_score": 0.8519956,
+        "retrieval_ms": 47.95310000190511
+      },
+      {
+        "id": "Q06",
+        "variant": "original",
+        "text": "해외 수출하려면 CE나 FDA 같은 인증이 필요한데 인증 비용 지원 있어?",
+        "max_knn_score": 0.84185946,
+        "retrieval_ms": 46.900800021830946
+      },
+      {
+        "id": "Q06",
+        "variant": "paraphrase",
+        "text": "유럽에 제품을 팔려면 CE 마크를 받아야 한다는데 그 비용을 나라에서 보태주나요?",
+        "max_knn_score": 0.7925788,
+        "retrieval_ms": 48.80699998466298
+      },
+      {
+        "id": "Q07",
+        "variant": "original",
+        "text": "경쟁사랑 특허 분쟁이 생겼어요. 소송 대응을 도와주는 지원사업 있나요?",
+        "max_knn_score": 0.85602486,
+        "retrieval_ms": 44.48380001122132
+      },
+      {
+        "id": "Q07",
+        "variant": "paraphrase",
+        "text": "다른 회사가 우리가 발명을 베꼈다며 고소했어요. 변호사 비용 같은 걸 도와주는 곳이 있나요?",
+        "max_knn_score": 0.7928708,
+        "retrieval_ms": 45.306599989999086
+      },
+      {
+        "id": "Q08",
+        "variant": "original",
+        "text": "우리 회사 핵심 기술이 유출될까 걱정돼요. 기술 보호 관련 지원 알려줘",
+        "max_knn_score": 0.8311049,
+        "retrieval_ms": 45.111300016287714
+      },
+      {
+        "id": "Q08",
+        "variant": "paraphrase",
+        "text": "퇴사한 직원이 설계 도면을 경쟁사에 넘길까 봐 불안해요. 미리 막을 수 있게 도와주는 제도 있어?",
+        "max_knn_score": 0.77279323,
+        "retrieval_ms": 46.9059000024572
+      },
+      {
+        "id": "Q09",
+        "variant": "original",
+        "text": "대학생 인턴을 뽑으면 회사에 지원금이 나오는 사업이 있나요?",
+        "max_knn_score": 0.8702676,
+        "retrieval_ms": 43.673900014255196
+      },
+      {
+        "id": "Q09",
+        "variant": "paraphrase",
+        "text": "졸업 전 학생들을 몇 달간 회사에서 실무 경험시키면 정부에서 비용을 대주나요?",
+        "max_knn_score": 0.8431198,
+        "retrieval_ms": 49.32290001306683
+      },
+      {
+        "id": "Q10",
+        "variant": "original",
+        "text": "외국인 전문인력을 채용하려고 하는데 비자 발급 추천을 받을 수 있나요",
+        "max_knn_score": 0.8217639,
+        "retrieval_ms": 44.974800024647266
+      },
+      {
+        "id": "Q10",
+        "variant": "paraphrase",
+        "text": "해외 엔지니어를 데려와서 일하게 하고 싶은데 체류 자격 받는 걸 도와주는 제도 있어?",
+        "max_knn_score": 0.80262774,
+        "retrieval_ms": 49.20549999224022
+      },
+      {
+        "id": "Q11",
+        "variant": "original",
+        "text": "직원이 육아휴직을 쓰면 회사가 받을 수 있는 지원금 있어?",
+        "max_knn_score": 0.8441067,
+        "retrieval_ms": 45.7145000109449
+      },
+      {
+        "id": "Q11",
+        "variant": "paraphrase",
+        "text": "직원이 아기가 태어나서 몇 달 쉬게 됐는데, 그 기간에 회사가 받을 수 있는 돈이 있나요?",
+        "max_knn_score": 0.8208903,
+        "retrieval_ms": 60.93890004558489
+      },
+      {
+        "id": "Q12",
+        "variant": "original",
+        "text": "50대 경력직을 채용하려는 서울 중소기업인데 인건비 지원 사업 있나요?",
+        "max_knn_score": 0.8588992,
+        "retrieval_ms": 55.80569995800033
+      },
+      {
+        "id": "Q12",
+        "variant": "paraphrase",
+        "text": "나이가 좀 있는 베테랑을 뽑고 싶은 회사인데 채용하면 임금 일부를 보조해주는 게 있나요?",
+        "max_knn_score": 0.84507334,
+        "retrieval_ms": 47.68359998706728
+      },
+      {
+        "id": "Q13",
+        "variant": "original",
+        "text": "공장 작업환경 안전시설을 개선하려는데 비용 지원 받을 수 있을까요",
+        "max_knn_score": 0.8693675,
+        "retrieval_ms": 46.93389998283237
+      },
+      {
+        "id": "Q13",
+        "variant": "paraphrase",
+        "text": "공장에서 끼임 사고가 날까 봐 방호장치를 달려고 하는데 설치비 보조가 되나요?",
+        "max_knn_score": 0.8432736,
+        "retrieval_ms": 47.1846999716945
+      },
+      {
+        "id": "Q14",
+        "variant": "original",
+        "text": "서울에 있는 중소기업인데 운영자금 저리 대출 받을 수 있는 곳 알려줘",
+        "max_knn_score": 0.84774035,
+        "retrieval_ms": 45.89980002492666
+      },
+      {
+        "id": "Q14",
+        "variant": "paraphrase",
+        "text": "강남에서 제조업을 하는데 직원 월급 줄 돈이 모자라서 싼 이자로 돈을 빌리고 싶어요",
+        "max_knn_score": 0.75367534,
+        "retrieval_ms": 45.49669998232275
+      },
+      {
+        "id": "Q15",
+        "variant": "original",
+        "text": "사회적기업도 받을 수 있는 대출이나 이자 지원이 있나요?",
+        "max_knn_score": 0.9036336,
+        "retrieval_ms": 41.91470000660047
+      },
+      {
+        "id": "Q15",
+        "variant": "paraphrase",
+        "text": "취약계층을 고용하는 착한 기업을 운영하는데 은행에서 빌린 돈의 이자를 줄여주는 제도가 있나요?",
+        "max_knn_score": 0.84582883,
+        "retrieval_ms": 45.20539997611195
+      },
+      {
+        "id": "Q16",
+        "variant": "original",
+        "text": "제조 공장에 스마트공장 시스템을 도입하고 싶어요",
+        "max_knn_score": 0.8113471,
+        "retrieval_ms": 41.78899998078123
+      },
+      {
+        "id": "Q16",
+        "variant": "paraphrase",
+        "text": "생산라인에 센서랑 자동화 설비를 깔아서 공정을 디지털로 바꾸고 싶어요",
+        "max_knn_score": 0.82624215,
+        "retrieval_ms": 44.814899971242994
+      },
+      {
+        "id": "Q17",
+        "variant": "original",
+        "text": "기업부설연구소를 새로 설립하려고 하는데 도움받을 수 있는 사업",
+        "max_knn_score": 0.85073334,
+        "retrieval_ms": 45.10270000901073
+      },
+      {
+        "id": "Q17",
+        "variant": "paraphrase",
+        "text": "회사 안에 R&D 전담 조직을 만들어서 정식으로 인정받고 싶은데 도와주는 곳 있어?",
+        "max_knn_score": 0.8031062,
+        "retrieval_ms": 48.06029994506389
+      },
+      {
+        "id": "Q18",
+        "variant": "original",
+        "text": "로봇 기술 연구개발 과제 지원 공고 있어?",
+        "max_knn_score": 0.8708823,
+        "retrieval_ms": 41.967199998907745
+      },
+      {
+        "id": "Q18",
+        "variant": "paraphrase",
+        "text": "산업용 자동화 기계팔 관련 신기술 개발비를 정부 과제로 받고 싶어요",
+        "max_knn_score": 0.8350179,
+        "retrieval_ms": 44.913899968378246
+      },
+      {
+        "id": "Q19",
+        "variant": "original",
+        "text": "장애인이 창업하려고 하는데 지원해주는 프로그램 있나요",
+        "max_knn_score": 0.88968515,
+        "retrieval_ms": 40.94380000606179
+      },
+      {
+        "id": "Q19",
+        "variant": "paraphrase",
+        "text": "몸이 불편해서 휠체어를 타는데 제 가게를 차리고 싶어요. 도와주는 제도 있나요?",
+        "max_knn_score": 0.7697703,
+        "retrieval_ms": 44.6463999687694
+      },
+      {
+        "id": "Q20",
+        "variant": "original",
+        "text": "우리 제품을 조달청 벤처나라에 등록해서 공공기관에 팔고 싶어요",
+        "max_knn_score": 0.85116434,
+        "retrieval_ms": 44.27740001119673
+      },
+      {
+        "id": "Q20",
+        "variant": "paraphrase",
+        "text": "우리 신제품을 관공서가 온라인으로 바로 구매할 수 있는 쇼핑몰에 올리고 싶어요",
+        "max_knn_score": 0.78061557,
+        "retrieval_ms": 58.69189999066293
+      },
+      {
+        "id": "Q21",
+        "variant": "original",
+        "text": "팁스(TIPS) 프로그램으로 투자 연계 지원을 받고 싶은 스타트업입니다",
+        "max_knn_score": 0.9056442,
+        "retrieval_ms": 57.768700004089624
+      },
+      {
+        "id": "Q21",
+        "variant": "paraphrase",
+        "text": "엔젤투자사한테 투자를 받으면 정부가 연구개발비를 매칭으로 더 얹어주는 프로그램이 있다던데요",
+        "max_knn_score": 0.9036515,
+        "retrieval_ms": 49.883299972862005
+      },
+      {
+        "id": "Q22",
+        "variant": "original",
+        "text": "아직 사업자 등록 전인 예비창업자인데 사업화 자금 받을 수 있나요?",
+        "max_knn_score": 0.8506656,
+        "retrieval_ms": 46.29399999976158
+      },
+      {
+        "id": "Q22",
+        "variant": "paraphrase",
+        "text": "회사를 차리기 전 단계인데 아이템을 시제품으로 만드는 데 쓸 돈을 받을 수 있을까?",
+        "max_knn_score": 0.8203969,
+        "retrieval_ms": 44.94459996931255
+      },
+      {
+        "id": "Q23",
+        "variant": "original",
+        "text": "스타트업 창업 경진대회에 나가보고 싶어요. 모집 중인 대회 있어?",
+        "max_knn_score": 0.8696693,
+        "retrieval_ms": 44.80390000389889
+      },
+      {
+        "id": "Q23",
+        "variant": "paraphrase",
+        "text": "사업 아이디어로 상금을 걸고 겨루는 대회에 나가보고 싶어요",
+        "max_knn_score": 0.79977,
+        "retrieval_ms": 44.81610003858805
+      },
+      {
+        "id": "Q24",
+        "variant": "original",
+        "text": "해킹이 걱정되는데 중소기업 정보보호 솔루션 도입 지원 받을 수 있을까요",
+        "max_knn_score": 0.86589843,
+        "retrieval_ms": 45.14259996358305
+      },
+      {
+        "id": "Q24",
+        "variant": "paraphrase",
+        "text": "랜섬웨어 공격을 받을까 봐 걱정인데 보안 장비 도입 비용을 도와주나요?",
+        "max_knn_score": 0.75834215,
+        "retrieval_ms": 51.5538000036031
+      },
+      {
+        "id": "Q25",
+        "variant": "original",
+        "text": "중소기업 ESG 경영 도입 컨설팅 지원사업 알려주세요",
+        "max_knn_score": 0.8991563,
+        "retrieval_ms": 40.81919998861849
+      },
+      {
+        "id": "Q25",
+        "variant": "paraphrase",
+        "text": "탄소 배출이나 사회적 책임 경영을 준비하라는 거래처 요구가 있어서 자문을 받고 싶어요",
+        "max_knn_score": 0.822502,
+        "retrieval_ms": 44.25089998403564
+      },
+      {
+        "id": "Q26",
+        "variant": "original",
+        "text": "회사를 다른 사람에게 넘기려고 하는데 M&A나 기업승계 지원이 있나요",
+        "max_knn_score": 0.8340106,
+        "retrieval_ms": 51.64159997366369
+      },
+      {
+        "id": "Q26",
+        "variant": "paraphrase",
+        "text": "은퇴를 앞두고 회사를 자녀나 제3자에게 물려주고 싶은데 도움받을 수 있나요?",
+        "max_knn_score": 0.7916634,
+        "retrieval_ms": 46.14120000042021
+      },
+      {
+        "id": "Q27",
+        "variant": "original",
+        "text": "1인 자영업자도 고용보험료 지원받을 수 있나요?",
+        "max_knn_score": 0.8543335,
+        "retrieval_ms": 57.217199995648116
+      },
+      {
+        "id": "Q27",
+        "variant": "paraphrase",
+        "text": "혼자 가게를 운영하는데 실직 대비 보험에 가입하면 보험료를 돌려받을 수 있나요?",
+        "max_knn_score": 0.75749964,
+        "retrieval_ms": 46.571799961384386
+      },
+      {
+        "id": "O01",
+        "variant": "off_topic",
+        "text": "주말에 서울에서 가볼 만한 전시회 추천해줘",
+        "max_knn_score": 0.71557486,
+        "retrieval_ms": 36.975800001528114
+      },
+      {
+        "id": "O02",
+        "variant": "off_topic",
+        "text": "아파트 청약 1순위 조건이 뭐야?",
+        "max_knn_score": 0.750402,
+        "retrieval_ms": 45.94770004041493
+      },
+      {
+        "id": "O03",
+        "variant": "off_topic",
+        "text": "운전면허 갱신은 어디서 하나요?",
+        "max_knn_score": 0.73258513,
+        "retrieval_ms": 38.00409997347742
+      },
+      {
+        "id": "O04",
+        "variant": "off_topic",
+        "text": "비트코인 앞으로 오를까?",
+        "max_knn_score": 0.636549,
+        "retrieval_ms": 31.92709997529164
+      },
+      {
+        "id": "O05",
+        "variant": "off_topic",
+        "text": "개인 주택담보대출 금리 비교해줘",
+        "max_knn_score": 0.8257283,
+        "retrieval_ms": 36.57009999733418
+      },
+      {
+        "id": "O06",
+        "variant": "off_topic",
+        "text": "감기 빨리 낫는 방법 알려줘",
+        "max_knn_score": 0.6614926,
+        "retrieval_ms": 29.73280003061518
+      }
+    ],
+    "threshold_table": [
+      {
+        "threshold": 0.7,
+        "on_topic_pass_original": 1.0,
+        "on_topic_pass_paraphrase": 1.0,
+        "off_topic_block": 0.3333333333333333
+      },
+      {
+        "threshold": 0.71,
+        "on_topic_pass_original": 1.0,
+        "on_topic_pass_paraphrase": 1.0,
+        "off_topic_block": 0.3333333333333333
+      },
+      {
+        "threshold": 0.72,
+        "on_topic_pass_original": 1.0,
+        "on_topic_pass_paraphrase": 1.0,
+        "off_topic_block": 0.5
+      },
+      {
+        "threshold": 0.73,
+        "on_topic_pass_original": 1.0,
+        "on_topic_pass_paraphrase": 1.0,
+        "off_topic_block": 0.5
+      },
+      {
+        "threshold": 0.74,
+        "on_topic_pass_original": 1.0,
+        "on_topic_pass_paraphrase": 1.0,
+        "off_topic_block": 0.6666666666666666
+      },
+      {
+        "threshold": 0.75,
+        "on_topic_pass_original": 1.0,
+        "on_topic_pass_paraphrase": 1.0,
+        "off_topic_block": 0.6666666666666666
+      },
+      {
+        "threshold": 0.76,
+        "on_topic_pass_original": 1.0,
+        "on_topic_pass_paraphrase": 0.8518518518518519,
+        "off_topic_block": 0.8333333333333334
+      },
+      {
+        "threshold": 0.77,
+        "on_topic_pass_original": 1.0,
+        "on_topic_pass_paraphrase": 0.8148148148148148,
+        "off_topic_block": 0.8333333333333334
+      },
+      {
+        "threshold": 0.78,
+        "on_topic_pass_original": 1.0,
+        "on_topic_pass_paraphrase": 0.7777777777777778,
+        "off_topic_block": 0.8333333333333334
+      },
+      {
+        "threshold": 0.79,
+        "on_topic_pass_original": 1.0,
+        "on_topic_pass_paraphrase": 0.7407407407407407,
+        "off_topic_block": 0.8333333333333334
+      },
+      {
+        "threshold": 0.8,
+        "on_topic_pass_original": 0.9629629629629629,
+        "on_topic_pass_paraphrase": 0.5555555555555556,
+        "off_topic_block": 0.8333333333333334
+      },
+      {
+        "threshold": 0.81,
+        "on_topic_pass_original": 0.9629629629629629,
+        "on_topic_pass_paraphrase": 0.4444444444444444,
+        "off_topic_block": 0.8333333333333334
+      },
+      {
+        "threshold": 0.82,
+        "on_topic_pass_original": 0.8888888888888888,
+        "on_topic_pass_paraphrase": 0.4074074074074074,
+        "off_topic_block": 0.8333333333333334
+      },
+      {
+        "threshold": 0.83,
+        "on_topic_pass_original": 0.8518518518518519,
+        "on_topic_pass_paraphrase": 0.25925925925925924,
+        "off_topic_block": 1.0
+      },
+      {
+        "threshold": 0.84,
+        "on_topic_pass_original": 0.7777777777777778,
+        "on_topic_pass_paraphrase": 0.2222222222222222,
+        "off_topic_block": 1.0
+      },
+      {
+        "threshold": 0.85,
+        "on_topic_pass_original": 0.6666666666666666,
+        "on_topic_pass_paraphrase": 0.07407407407407407,
+        "off_topic_block": 1.0
+      }
+    ]
+  },
+  "answers": {
+    "measured": false,
+    "reason": "LLM API 키가 없어 답변을 생성할 수 없음 (LLM_PROVIDER=upstage). .env에 키를 넣고 이 스크립트를 다시 실행하면 측정됩니다."
+  }
+}

@@ -64,6 +64,10 @@ def main() -> int:
     check("수치: 근거와 같은 값은 통과(쉼표·공백 차이 무시)", unsupported_numbers("최대 5000만 원, 자부담 20 %", context), [])
     check("수치: 근거에 없는 금액은 검출", unsupported_numbers("최대 1억원을 지원하며 30개사를 뽑습니다", context), ["1억원"])
     check("수치: 수치 없는 답변은 검출 없음", unsupported_numbers("자세한 내용은 공고를 확인하세요", context), [])
+    # 공고문에 흔한 "숫자+한글 단위" 혼합 표기 (처음 패턴이 못 잡았던 형식)
+    context_mixed = ["지원한도: 업체당 6백만원, 총 3천만원"]
+    check("수치: '6백만원'·'3천만원' 표기도 근거와 대조", unsupported_numbers("6백만원씩 총 3천만원", context_mixed), [])
+    check("수치: 근거에 없는 '9백만원'은 검출", unsupported_numbers("최대 9백만원 지원", context_mixed), ["9백만원"])
 
     passed = sum(ok for _, ok in results)
     print(f"\n{passed}/{len(results)} passed")
