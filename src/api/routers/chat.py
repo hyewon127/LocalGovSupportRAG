@@ -50,11 +50,10 @@ def _validate_filters(req: ChatRequest, candidates: dict[str, list[str]]) -> Non
 def chat(req: ChatRequest, res: AppResources = Depends(get_resources)):
     _validate_filters(req, res.candidates)
 
-    # hybrid_search()는 OpenSearch에 연결이 안 되면 예외 대신 빈 리스트를 돌려줘서(check_connection 실패 시),
-    # 파이프라인 결과가 "근거 없음"으로 나옵니다. 서버 장애를 "관련 사업 없음"으로 잘못 안내하지 않도록
-    # 여기서 먼저 확인하고 503으로 돌려보냅니다 (main.py의 공통 503 처리와 같은 문구).
-    if not res.os_client.ping():
-        raise HTTPException(503, "검색 서버(OpenSearch)에 연결할 수 없습니다. OpenSearch가 켜져 있는지 확인하세요.")
+    # [WBS 8.1 변경] 예전에는 여기서 ping()으로 OpenSearch 연결을 먼저 확인했습니다. hybrid_search()가 연결 실패를
+    #   빈 결과로 삼켜서 "근거 없음"으로 둔갑했기 때문인데, 이제 hybrid_search()가 예외를 그대로 올리므로
+    #   main.py의 공통 예외 처리가 503(연결 실패)/503(인덱스 없음)/502(검색 오류)로 바꿔줍니다.
+    #   ping을 빼서 요청마다 왕복 1번이 줄었고, "ping은 성공했는데 검색 직전에 끊긴" 경우도 같이 잡힙니다.
 
     session_id = req.session_id or uuid.uuid4().hex
 
@@ -113,4 +112,11 @@ def chat_history(session_id: str, limit: int = Query(50, ge=1, le=200)):
     SFR-008의 "재조회". 화면을 새로고침해도 같은 session_id로 이전 대화를 다시 그릴 수 있게 합니다.
     없는 session_id면 404가 아니라 빈 목록을 돌려줍니다 - "아직 대화가 없는 세션"도 정상 상태이기 때문입니다.
     """
-    return ChatHistoryResponse(session_id=session_id, items=get_history(session_id, limit))
+    try:
+        items = get_history(session_id, limit)
+    except sqlite3.Error as e:
+        # [WBS 8.1] DB 파일이 잠겼거나 서버 시작 시 초기화에 실패한 경우(main.py lifespan 참고).
+        # 저장소 문제는 요청이 잘못된 게 아니라 서버 쪽 사정이라 503으로 알립니다.
+        logger.error("대화 이력 조회 실패 (session=%s): %s", session_id, e)
+        raise HTTPException(503, "대화 이력 저장소를 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.") from e
+    return ChatHistoryResponse(session_id=session_id, items=items)

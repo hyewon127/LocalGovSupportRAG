@@ -22,7 +22,9 @@ API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000").rstrip("/")
 
 # /chat은 LLM 답변 생성까지 기다려야 해서 길게, 나머지 조회는 짧게.
 # 타임아웃을 안 주면 백엔드가 멈췄을 때 화면도 영원히 "로딩 중"으로 멈춥니다 (requests 기본값은 무제한).
-CHAT_TIMEOUT_SEC = 60
+# 90초인 이유: 백엔드의 최악 대기 시간(src/rag/llm_client.py LLM_TIMEOUT_SEC 주석: 80초)보다 길어야
+# 백엔드가 "LLM 오류 - 공고 목록만 안내"로 정상 응답할 기회를 화면이 먼저 끊어버리지 않습니다.
+CHAT_TIMEOUT_SEC = 90
 DEFAULT_TIMEOUT_SEC = 10
 
 

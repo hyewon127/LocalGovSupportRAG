@@ -50,6 +50,16 @@ LLM_MODEL = os.getenv("LLM_MODEL") or _SPEC["default_model"]
 # 정확히 옮겨야 하는 이 서비스에서는 창의성보다 사실성이 중요하므로 낮게 둡니다.
 LLM_TEMPERATURE = 0.2
 
+# [WBS 8.1] 호출 1번의 최대 대기 시간과 실패 시 재시도 횟수.
+#   openai 패키지 기본값은 timeout 600초 + 재시도 2번이라, LLM 서버가 응답 없이 멈추면 요청 하나가 최대
+#   30분 동안 서버 스레드를 붙잡습니다. 그동안 화면(Streamlit)은 이미 타임아웃으로 포기했는데 서버만 계속 기다리는 셈입니다.
+#   답변 800토큰(generator.py MAX_ANSWER_TOKENS) 생성은 보통 수 초면 끝나므로 20초면 넉넉하고,
+#   재시도 1번은 일시적인 네트워크 끊김 정도만 구제합니다.
+#   -> 최악의 경우 슬롯 추출 폴백(20초x2) + 답변 생성(20초x2) = 80초. ui/api_client.py의 CHAT_TIMEOUT_SEC(90초)가
+#      이보다 길어야 화면이 먼저 끊지 않습니다 (둘을 바꿀 때는 같이 봐야 함).
+LLM_TIMEOUT_SEC = 20
+LLM_MAX_RETRIES = 1
+
 
 def get_llm_client() -> OpenAI | None:
     """
@@ -67,4 +77,4 @@ def get_llm_client() -> OpenAI | None:
     if not api_key or api_key.lower().startswith("your"):
         print(f"[LLM 비활성] .env에 {_SPEC['api_key_env']}가 없거나 예시 값입니다 (LLM_PROVIDER={LLM_PROVIDER}).")
         return None
-    return OpenAI(api_key=api_key, base_url=_SPEC["base_url"])
+    return OpenAI(api_key=api_key, base_url=_SPEC["base_url"], timeout=LLM_TIMEOUT_SEC, max_retries=LLM_MAX_RETRIES)
