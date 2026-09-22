@@ -188,7 +188,13 @@ def hybrid_search(
             **source,
         })
 
-    combined.sort(key=lambda r: r["score"], reverse=True)
+    # 동점일 때 chunk_id로 순서를 고정합니다. [실행해서 발견한 버그 - 2026-09-22, WBS 7.2]
+    #   코드를 바꾸지 않았는데 평가를 두 번 돌리니 BM25 단독 Hit@5가 85.2% -> 81.5%로 달라졌습니다.
+    #   원인: 같은 공고가 원공고/변경공고로 중복 등록된 경우 본문이 같아 점수가 완전히 같은데, score만으로 정렬하면
+    #   동점끼리는 candidate_ids(set)를 순회한 순서가 그대로 남습니다. 파이썬은 실행할 때마다 문자열 해시값이
+    #   바뀌어서(보안상 기본 동작) set 순회 순서도 매번 달라지고, 그래서 "같은 질문에 다른 top-5"가 나왔습니다.
+    #   서비스에서도 같은 질문의 답이 새로고침마다 바뀔 수 있는 문제라서, 두 번째 정렬 기준을 둬서 결과를 결정적으로 만듭니다.
+    combined.sort(key=lambda r: (-r["score"], r["chunk_id"]))
 
     # 다양성 확보: 점수순으로 훑으면서 같은 program_id는 MAX_CHUNKS_PER_PROGRAM개까지만 채택.
     # (위 MAX_CHUNKS_PER_PROGRAM 주석 참고 - 실제 "통합 공고" 문서로 확인된 문제에 대한 대응)
