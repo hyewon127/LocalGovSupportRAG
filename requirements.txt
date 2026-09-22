@@ -1,13 +1,26 @@
-opensearch-py
-fastapi
-uvicorn
-pydantic
-pdfplumber
-python-dotenv
-openai
-streamlit
-tiktoken
-sentence-transformers
-requests
-PyMuPDF
-olefile
+# [WBS 8.4] 버전 고정 - 분석모델 정의서 1.2 "requirements.txt로 버전 고정"
+# 2026-09-22 프로젝트 .venv(Python 3.12.10)에서 전체 테스트(tests/run_all.py 160/160)를 통과한 버전입니다.
+# 버전을 안 적으면 몇 달 뒤 새로 설치할 때 호환되지 않는 새 버전이 깔려 "내 PC에선 되는데" 문제가 생깁니다.
+
+# 검색/색인
+opensearch-py==3.2.0
+sentence-transformers==6.0.0     # ko-sroberta 임베딩 (torch 등은 이 패키지가 함께 설치)
+
+# 백엔드 / 화면
+fastapi==0.141.1
+uvicorn==0.52.4
+pydantic==2.13.4
+streamlit==1.62.0
+requests==2.34.2
+httpx==0.28.1                    # FastAPI TestClient가 필요로 함 (tests/)
+
+# LLM (Upstage Solar Pro - OpenAI 호환 API라 openai 패키지 사용)
+openai==3.3.1
+python-dotenv==1.2.3
+
+# 전처리
+pdfplumber==0.11.10
+olefile==0.47                    # HWP(OLE) 텍스트 추출
+pymupdf==1.28.2                  # WBS 3.1 pdfplumber 비교 테스트용 - 현재 src/ 코드에서는 사용하지 않음
+tiktoken                         # 청크 토큰 수 계산용. 주의: 현재 .venv에는 설치돼 있지 않아 chunks.json은 근사치로
+                                 # 만들어졌음(src/preprocessing/chunker.py 주석). 설치 후 청킹을 다시 하면 결과가 달라짐

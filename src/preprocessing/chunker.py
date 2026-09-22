@@ -22,6 +22,9 @@ try:
 except ImportError:
     # tiktoken이 설치 안 돼 있어도 파이프라인 전체가 죽으면 안 되므로 None으로 두고
     # count_tokens()에서 근사치 계산으로 대체 처리함
+    # [주의 - 2026-09-22 WBS 8.4에서 확인] 프로젝트 .venv에는 tiktoken이 설치돼 있지 않아서, 현재 chunks.json의
+    # token_count는 3,884개 전부 이 근사치(글자수/1.7)입니다. 즉 "500~800토큰" 청크는 실제로는 약 850~1,360글자입니다.
+    # tiktoken을 설치하고 이 스크립트를 다시 돌리면 청크 경계가 바뀌므로, 임베딩·색인·평가도 다시 해야 합니다.
     _ENCODER = None
 
 
@@ -34,7 +37,7 @@ THIS_FILE = Path(__file__).resolve()
 PROJECT_ROOT = THIS_FILE.parent.parent.parent
 RAW_DIR = PROJECT_ROOT / "data" / "raw"                       # fetch_bizinfo.py가 다운로드한 원본 파일들
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"           # extractor.py, chunker.py의 결과물이 쌓이는 곳
-EXTRACTED_JSON = PROCESSED_DIR / "extracted.json"              # extractor.py의 출력 (352건, PDF 텍스트+표)
+EXTRACTED_JSON = PROCESSED_DIR / "extracted.json"              # extractor.py의 출력 (533건 - PDF/HWP/HWPX 텍스트+표, 그중 42건은 텍스트 없음)
 METADATA_CSV = RAW_DIR / "metadata.csv"                        # fetch_bizinfo.py의 출력 (574건, 공고 메타데이터)
 OUT_JSON = PROCESSED_DIR / "chunks.json"                       # 이 파일(chunker.py)의 최종 출력
 

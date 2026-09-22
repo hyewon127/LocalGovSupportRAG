@@ -22,7 +22,7 @@ load_dotenv()  # 프로젝트 루트의 .env를 읽어서 환경변수로 올림
 THIS_FILE = Path(__file__).resolve()
 PROJECT_ROOT = THIS_FILE.parent.parent.parent          # src/indexing/ -> src/ -> 프로젝트 루트
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
-CHUNKS_JSON = PROCESSED_DIR / "chunks.json"            # chunker.py의 출력 (2,700개 청크, embedding=None 상태)
+CHUNKS_JSON = PROCESSED_DIR / "chunks.json"            # chunker.py의 출력 (청크 3,884개, embedding=None 상태)
 EMBEDDED_JSON = PROCESSED_DIR / "chunks_embedded.json"  # embedder.py(③)의 출력 (embedding 채워진 상태)
 
 

@@ -50,6 +50,25 @@ LLM_MODEL = os.getenv("LLM_MODEL") or _SPEC["default_model"]
 # 정확히 옮겨야 하는 이 서비스에서는 창의성보다 사실성이 중요하므로 낮게 둡니다.
 LLM_TEMPERATURE = 0.2
 
+# [WBS 8.1] 호출 1번의 최대 대기 시간과 실패 시 재시도 횟수.
+#   openai 패키지 기본값은 timeout 600초 + 재시도 2번이라, LLM 서버가 응답 없이 멈추면 요청 하나가 최대
+#   30분 동안 서버 스레드를 붙잡습니다. 그동안 화면(Streamlit)은 이미 타임아웃으로 포기했는데 서버만 계속 기다리는 셈입니다.
+#   답변 800토큰(generator.py MAX_ANSWER_TOKENS) 생성은 보통 수 초면 끝나므로 20초면 넉넉하고,
+#   재시도 1번은 일시적인 네트워크 끊김 정도만 구제합니다.
+#   -> 최악의 경우 슬롯 추출 폴백(20초x2) + 답변 생성(20초x2) = 80초. ui/api_client.py의 CHAT_TIMEOUT_SEC(90초)가
+#      이보다 길어야 화면이 먼저 끊지 않습니다 (둘을 바꿀 때는 같이 봐야 함).
+LLM_TIMEOUT_SEC = 20
+LLM_MAX_RETRIES = 1
+
+# [WBS 8.4] "LLM 클라이언트를 안 넘겼음"을 나타내는 표시값(sentinel).
+#   예전에는 pipeline.answer_question()/query_slots.extract_slots()가 llm_client=None을 "안 넘겼으니 알아서 만들어라"로
+#   해석해서, 호출하는 쪽이 "LLM 없이 해라"라는 뜻으로 None을 넘겨도 .env에 키가 있으면 get_llm_client()로 다시 만들어
+#   LLM을 불렀습니다. 지금은 키가 없어서 드러나지 않았지만, 키를 넣는 순간 테스트(가짜 LLM 대신 None으로 "LLM 없음"
+#   경로를 검사하는 곳)가 실제 유료 API를 호출하게 되는 잠재 버그였습니다. 그래서 두 뜻을 분리합니다:
+#     인자를 생략(= USE_DEFAULT_LLM) -> .env 설정대로 클라이언트를 만듦
+#     None을 명시                    -> LLM을 쓰지 않음
+USE_DEFAULT_LLM = object()
+
 
 def get_llm_client() -> OpenAI | None:
     """
@@ -67,4 +86,12 @@ def get_llm_client() -> OpenAI | None:
     if not api_key or api_key.lower().startswith("your"):
         print(f"[LLM 비활성] .env에 {_SPEC['api_key_env']}가 없거나 예시 값입니다 (LLM_PROVIDER={LLM_PROVIDER}).")
         return None
-    return OpenAI(api_key=api_key, base_url=_SPEC["base_url"])
+    return OpenAI(api_key=api_key, base_url=_SPEC["base_url"], timeout=LLM_TIMEOUT_SEC, max_retries=LLM_MAX_RETRIES)
+
+
+def resolve_llm_client(llm_client):
+    """
+    입력: 호출하는 쪽이 넘긴 llm_client 인자 (USE_DEFAULT_LLM / None / 클라이언트 객체)
+    출력: 실제로 쓸 클라이언트 또는 None. 위 USE_DEFAULT_LLM 주석의 규칙을 한 곳에서 적용합니다.
+    """
+    return get_llm_client() if llm_client is USE_DEFAULT_LLM else llm_client

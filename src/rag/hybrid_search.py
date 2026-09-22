@@ -34,7 +34,7 @@ _INDEXING_DIR = _PROJECT_ROOT / "src" / "indexing"
 if str(_INDEXING_DIR) not in sys.path:
     sys.path.insert(0, str(_INDEXING_DIR))
 
-from config import INDEX_NAME, check_connection, get_client  # noqa: E402
+from config import INDEX_NAME, get_client  # noqa: E402
 from embedder import embed_batch  # noqa: E402  (질의 문장을 색인 때와 같은 모델/차원으로 벡터화하기 위해 재사용)
 
 # ── 분석모델 정의서 1.3 "주요 파라미터"의 권장값을 그대로 상수화 ─────
@@ -170,8 +170,12 @@ def hybrid_search(
       4) score 기준 내림차순 정렬 후 top_k개 반환
     """
     client = client or get_client()
-    if not check_connection(client):
-        return []
+    # [WBS 8.1 변경] 예전에는 여기서 check_connection()으로 연결을 확인하고, 실패하면 빈 리스트를 돌려줬습니다.
+    #   문제 1) 빈 리스트는 "검색했는데 관련 공고가 없다"와 구분이 안 돼서, 서버 장애가 파이프라인에서
+    #           "근거 없음(no_evidence)" 답변으로 둔갑했습니다 (API는 /chat에서 ping을 따로 해서 가리고 있었을 뿐).
+    #   문제 2) 질문마다 연결 확인용 요청(client.info())이 한 번 더 나가고, 서버 로그에 "[연결 성공]"이 매번 찍혔습니다.
+    #   그래서 확인을 빼고, 연결 실패는 client.search()가 던지는 예외 그대로 위로 올립니다. API에서는 main.py의
+    #   공통 예외 처리가 503으로 바꿔주고, 평가 스크립트처럼 직접 부르는 쪽은 조용히 틀린 결과 대신 에러를 보게 됩니다.
 
     filters = build_filter_clauses(region, categories)
 

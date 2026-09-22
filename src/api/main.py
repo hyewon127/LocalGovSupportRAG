@@ -29,9 +29,13 @@
 import logging
 from contextlib import asynccontextmanager
 
+import sqlite3
+
 from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse
 from opensearchpy.exceptions import ConnectionError as OpenSearchConnectionError
+from opensearchpy.exceptions import NotFoundError as OpenSearchNotFoundError
+from opensearchpy.exceptions import TransportError as OpenSearchTransportError
 
 from config import INDEX_NAME, get_client          # src/indexing/config.py (경로는 src/api/__init__.py에서 설정)
 from embedder import embed_batch                    # src/indexing/embedder.py
@@ -52,8 +56,8 @@ logging.basicConfig(level=logging.WARNING, format="%(asctime)s %(levelname)s [%(
 logger = logging.getLogger("api")
 logger.setLevel(logging.INFO)
 # opensearch-py는 연결 실패 시 재시도할 때마다 WARNING + 전체 트레이스백을 찍습니다(OpenSearch를 꺼두고
-# 실행해보니 요청 1번에 트레이스백 3개). 연결 실패는 아래 503 처리와 routers/chat.py의 ping()에서 이미
-# 한 줄짜리 로그로 남기므로, 중복되는 트레이스백은 숨깁니다.
+# 실행해보니 요청 1번에 트레이스백 3개). 연결 실패는 아래 공통 예외 처리에서 이미 한 줄짜리 로그로 남기므로,
+# 중복되는 트레이스백은 숨깁니다.
 logging.getLogger("opensearch").setLevel(logging.ERROR)
 
 
@@ -80,7 +84,12 @@ async def lifespan(app: FastAPI):
 
     # 대화 이력 테이블(TB_CHAT_LOG)이 없으면 생성. 첫 /chat 요청 때 만들면 동시에 들어온 두 요청이
     # 같이 CREATE를 시도할 수 있어서, 요청을 받기 전인 여기서 한 번만 합니다.
-    init_db()
+    # [WBS 8.1] 실패해도(디스크 권한, 파일 잠김 등) 서버는 띄웁니다. 대화 이력은 부가 기능이라 질의응답까지
+    #   막을 이유가 없고, /chat은 저장 실패 시 chat_id=None으로, /chat/history는 503으로 알아서 대응합니다.
+    try:
+        init_db()
+    except sqlite3.Error as e:
+        logger.error("대화 이력 DB 초기화 실패 - 이력 저장/조회 없이 서버를 시작합니다: %s", e)
 
     app.state.resources = AppResources(os_client=os_client, llm_client=llm, candidates=candidates)
     logger.info("서버 준비 완료 - 후보값 %s / LLM %s", candidates, "사용 가능" if llm else "비활성(키 없음)")
@@ -115,15 +124,61 @@ async def opensearch_unavailable_handler(request: Request, exc: OpenSearchConnec
     )
 
 
+# [WBS 8.1] 아래 두 처리는 위의 연결 실패와 같은 TransportError 계열입니다. FastAPI(Starlette)는 예외의 클래스
+# 계층을 아래에서부터(가장 구체적인 것부터) 훑어서 처음 등록된 처리를 쓰므로, ConnectionError/NotFoundError는
+# 각자의 처리로, 나머지 OpenSearch 오류는 TransportError 처리로 갑니다. 등록 순서와는 상관없습니다.
+@app.exception_handler(OpenSearchNotFoundError)
+async def index_missing_handler(request: Request, exc: OpenSearchNotFoundError):
+    """
+    검색 요청에서 NotFoundError가 나는 경우는 사실상 "인덱스가 아직 없음"뿐입니다 (문서 단건 조회 API를 쓰지 않고
+    전부 search로 조회하므로). 새 PC에서 색인 단계를 건너뛰고 서버부터 띄웠을 때 나는 상황이라, 해결 순서를 알려줍니다.
+    """
+    logger.error("OpenSearch 인덱스 없음: %s", exc)
+    return JSONResponse(
+        status_code=503,
+        content={"detail": f"검색 인덱스({INDEX_NAME})가 없습니다. src/indexing의 index_mapping.py -> embedder.py -> "
+                           "bulk_indexer.py 순서로 색인한 뒤 다시 시도하세요."},
+    )
+
+
+@app.exception_handler(OpenSearchTransportError)
+async def opensearch_error_handler(request: Request, exc: OpenSearchTransportError):
+    """
+    OpenSearch가 요청을 받긴 했지만 오류로 응답한 경우 (잘못된 쿼리 400, 서버 내부 오류 500 등).
+    502(Bad Gateway) = "우리 서버는 정상인데, 뒤에서 부른 서버가 잘못된 응답을 줬다"는 뜻이라 원인 구분에 맞습니다.
+    쿼리 내용 등 내부 정보는 로그에만 남기고 사용자에게는 일반 문구만 보여줍니다.
+    """
+    logger.error("OpenSearch 오류 응답 (status=%s): %s", exc.status_code, exc)
+    return JSONResponse(status_code=502, content={"detail": "검색 서버가 오류를 반환했습니다. 잠시 후 다시 시도해 주세요."})
+
+
+@app.exception_handler(Exception)
+async def unexpected_error_handler(request: Request, exc: Exception):
+    """
+    위에서 처리하지 못한 모든 예외의 마지막 그물. 이게 없으면 FastAPI는 "Internal Server Error"라는 일반 텍스트를
+    돌려주는데, 화면(ui/api_client.py)은 {"detail": ...} JSON을 기대하므로 형식을 맞춰 줍니다.
+    logger.exception은 전체 트레이스백까지 남겨서, 사용자에게는 짧은 문구를 보여주되 원인 추적은 가능하게 합니다.
+    """
+    logger.exception("처리되지 않은 예외 (%s %s)", request.method, request.url.path)
+    return JSONResponse(status_code=500, content={"detail": "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."})
+
+
 # ── 상태 점검 ────────────────────────────────────────────────────────
 @app.get("/health", response_model=HealthResponse, tags=["system"])
 def health(res: AppResources = Depends(get_resources)):
     # ping()은 연결이 안 되면 예외 대신 False를 돌려주므로 위의 503 처리로 빠지지 않고 상태만 보고합니다.
     opensearch_ok = res.os_client.ping()
-    index_docs = res.os_client.count(index=INDEX_NAME)["count"] if opensearch_ok else None
+    index_docs = None
+    if opensearch_ok:
+        # 서버는 떠 있는데 인덱스가 없는 경우(색인 전)도 /health 자체는 실패시키지 않고 "degraded"로 보고합니다.
+        # /health는 "무엇이 문제인지 알려주는 곳"이라, 여기서 503을 내면 화면이 원인을 구분할 수 없습니다.
+        try:
+            index_docs = res.os_client.count(index=INDEX_NAME)["count"]
+        except OpenSearchNotFoundError:
+            index_docs = None
     return HealthResponse(
-        # LLM이 없어도 검색 결과는 돌려줄 수 있으므로(pipeline의 llm_unavailable), OpenSearch만 기준으로 판단
-        status="ok" if opensearch_ok else "degraded",
+        # LLM이 없어도 검색 결과는 돌려줄 수 있으므로(pipeline의 llm_unavailable), OpenSearch와 인덱스만 기준으로 판단
+        status="ok" if opensearch_ok and index_docs is not None else "degraded",
         opensearch=opensearch_ok,
         index_docs=index_docs,
         llm_enabled=res.llm_client is not None,
