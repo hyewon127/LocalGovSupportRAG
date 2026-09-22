@@ -146,13 +146,20 @@ def hybrid_search(
     target_keywords: list[str] | None = None,
     top_k: int = DEFAULT_TOP_K,
     client=None,
+    bm25_weight: float = BM25_WEIGHT,
+    knn_weight: float = KNN_WEIGHT,
+    max_chunks_per_program: int | None = MAX_CHUNKS_PER_PROGRAM,
 ) -> list[dict]:
     """
     입력: query_text - 사용자 원문 질의
           region/categories/target_keywords - query_slots.extract_slots()의 출력을 그대로 넣으면 됨
           top_k - 최종 반환 개수 (기본 5, 분석모델 정의서 권장값)
+          bm25_weight/knn_weight/max_chunks_per_program - [WBS 7.2 추가] 평가(src/evaluation/retrieval_eval.py)에서
+                 "BM25만 / kNN만 / 가중치 0.2~0.8 / 사업당 상한 없음"을 비교하려고 인자로 열어둠.
+                 서비스(pipeline.py)는 인자를 안 넘기므로 위의 문서 권장값(0.4/0.6, 사업당 2개)이 그대로 쓰입니다.
+                 max_chunks_per_program=None이면 상한 없이 점수순으로 자릅니다.
     출력: [{"chunk_id", "score", "bm25_score", "knn_score", **source필드}, ...]
-          score 내림차순으로 정렬된 top_k개 (score는 0.4*BM25_norm + 0.6*KNN_norm)
+          score 내림차순으로 정렬된 top_k개 (score는 bm25_weight*BM25_norm + knn_weight*KNN_norm)
 
     동작 순서:
       1) BM25/kNN을 각각 CANDIDATE_POOL_SIZE개씩 (필터 적용해서) 따로 검색
@@ -175,14 +182,23 @@ def hybrid_search(
     bm25_norm = normalize_scores(bm25_hits)
     knn_norm = normalize_scores(knn_hits)
 
+    # 가중치가 0인 쪽의 검색 결과는 후보에서 뺍니다. 빼지 않으면 "BM25만" 설정인데도 kNN에서만 잡힌 문서가
+    # 0점으로 후보에 남아서, BM25 결과가 top_k보다 적을 때 0점끼리 무작위 순서로 끼어듭니다 - 단일 방식 비교가
+    # 공정하지 않게 됩니다. (knn_score는 가드레일이 쓰므로 kNN 검색 자체는 가중치와 상관없이 항상 수행)
+    candidate_ids: set[str] = set()
+    if bm25_weight > 0:
+        candidate_ids |= set(bm25_hits)
+    if knn_weight > 0:
+        candidate_ids |= set(knn_hits)
+
     combined: list[dict] = []
-    for chunk_id in set(bm25_hits) | set(knn_hits):
+    for chunk_id in candidate_ids:
         bm25_score = bm25_norm.get(chunk_id, 0.0)
         knn_score = knn_norm.get(chunk_id, 0.0)
         source = (bm25_hits.get(chunk_id) or knn_hits.get(chunk_id))["source"]
         combined.append({
             "chunk_id": chunk_id,
-            "score": BM25_WEIGHT * bm25_score + KNN_WEIGHT * knn_score,
+            "score": bm25_weight * bm25_score + knn_weight * knn_score,
             "bm25_score": bm25_hits.get(chunk_id, {}).get("score"),  # 원본(정규화 전) 점수 - 디버깅용
             "knn_score": knn_hits.get(chunk_id, {}).get("score"),
             **source,
@@ -202,7 +218,7 @@ def hybrid_search(
     count_by_program: dict[str, int] = {}
     for r in combined:
         program_id = r["program_id"]
-        if count_by_program.get(program_id, 0) >= MAX_CHUNKS_PER_PROGRAM:
+        if max_chunks_per_program is not None and count_by_program.get(program_id, 0) >= max_chunks_per_program:
             continue
         selected.append(r)
         count_by_program[program_id] = count_by_program.get(program_id, 0) + 1
