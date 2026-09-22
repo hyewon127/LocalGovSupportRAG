@@ -34,13 +34,24 @@ from query_slots import extract_slots, fetch_candidate_values  # noqa: E402
 LLM_UNAVAILABLE_MESSAGE = "현재 답변 생성 기능을 사용할 수 없어, 질문과 관련된 공고 목록만 안내합니다."
 
 
-def answer_question(question: str, *, os_client=None, llm_client=None, candidates: dict | None = None) -> dict:
+def answer_question(
+    question: str,
+    *,
+    os_client=None,
+    llm_client=None,
+    candidates: dict | None = None,
+    region: str | None = None,
+    categories: list[str] | None = None,
+    target_keywords: list[str] | None = None,
+) -> dict:
     """
     입력: question - 사용자 질문
           os_client - OpenSearch 클라이언트 (없으면 새로 만듦)
           llm_client - LLM 클라이언트 (없으면 llm_client.get_llm_client()로 만듦, 키가 없으면 None)
           candidates - query_slots.fetch_candidate_values() 결과. 없으면 매 질문마다 집계 쿼리를 한 번 더
                        보내게 되므로, FastAPI에서는 서버 시작 시 한 번만 구해서 계속 넘기는 걸 권장
+          region/categories/target_keywords - [WBS 6.2 추가] 화면 필터 패널(화면정의서 SCR-01)에서 사용자가
+                       직접 고른 값. 비워두면 기존처럼 질문 문장에서 추출한 슬롯만 씁니다.
     출력: {"status", "answer", "sources", "slots", ...} (상단 [응답 형식] 참고)
     """
     os_client = os_client or get_client()
@@ -49,6 +60,20 @@ def answer_question(question: str, *, os_client=None, llm_client=None, candidate
 
     # 5.1 슬롯 추출
     slots = extract_slots(question, candidates=candidates, llm_client=llm)
+
+    # 화면에서 고른 값 반영. region/categories(필터)와 target_keywords(검색어 힌트)를 다르게 다룹니다:
+    #   - 필터는 "덮어쓰기": 드롭다운에서 "금융"을 골랐는데 질문 문장에 "창업"이 있어서 둘 다 필터로 걸면
+    #     terms 필터가 OR라 사용자가 고르지 않은 분야까지 섞여 나옵니다. 명시적으로 고른 값이 문장에서
+    #     추측한 값보다 사용자의 의도에 가까우므로 그 값으로 바꿉니다.
+    #   - 힌트는 "합치기": target_keywords는 결과를 걸러내지 않고 BM25 검색어에 보태기만 하므로(hybrid_search.py),
+    #     둘 다 넣어도 결과가 사라질 위험이 없고 검색어가 풍부해질 뿐입니다.
+    if region:
+        slots["region"] = region
+    if categories:
+        slots["categories"] = list(categories)
+    if target_keywords:
+        # dict.fromkeys: 순서를 유지하면서 중복 제거 (set은 순서가 뒤섞임)
+        slots["target_keywords"] = list(dict.fromkeys(slots["target_keywords"] + list(target_keywords)))
 
     # 5.2 하이브리드 검색
     chunks = hybrid_search(
