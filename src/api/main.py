@@ -31,7 +31,9 @@ from embedder import embed_batch                    # src/indexing/embedder.py
 from llm_client import LLM_MODEL, LLM_PROVIDER, get_llm_client  # src/rag/llm_client.py
 from query_slots import fetch_candidate_values      # src/rag/query_slots.py
 
+from .chat_log import init_db
 from .dependencies import AppResources, get_resources
+from .routers import chat
 from .schemas import HealthResponse
 
 # 기존 src/ 스크립트들은 print로 진행 상황을 찍었지만, 서버는 여러 요청이 동시에 섞여 들어오므로
@@ -42,6 +44,10 @@ from .schemas import HealthResponse
 logging.basicConfig(level=logging.WARNING, format="%(asctime)s %(levelname)s [%(name)s] %(message)s")
 logger = logging.getLogger("api")
 logger.setLevel(logging.INFO)
+# opensearch-py는 연결 실패 시 재시도할 때마다 WARNING + 전체 트레이스백을 찍습니다(OpenSearch를 꺼두고
+# 실행해보니 요청 1번에 트레이스백 3개). 연결 실패는 아래 503 처리와 routers/chat.py의 ping()에서 이미
+# 한 줄짜리 로그로 남기므로, 중복되는 트레이스백은 숨깁니다.
+logging.getLogger("opensearch").setLevel(logging.ERROR)
 
 
 @asynccontextmanager
@@ -65,6 +71,10 @@ async def lifespan(app: FastAPI):
     logger.info("임베딩 모델 로딩 중 (첫 실행 시 수 초 소요)...")
     embed_batch(["warm-up"])
 
+    # 대화 이력 테이블(TB_CHAT_LOG)이 없으면 생성. 첫 /chat 요청 때 만들면 동시에 들어온 두 요청이
+    # 같이 CREATE를 시도할 수 있어서, 요청을 받기 전인 여기서 한 번만 합니다.
+    init_db()
+
     app.state.resources = AppResources(os_client=os_client, llm_client=llm, candidates=candidates)
     logger.info("서버 준비 완료 - 후보값 %s / LLM %s", candidates, "사용 가능" if llm else "비활성(키 없음)")
     yield
@@ -77,6 +87,8 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+app.include_router(chat.router)
 
 
 # ── 공통 예외 처리 ───────────────────────────────────────────────────

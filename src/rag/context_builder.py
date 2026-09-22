@@ -60,6 +60,13 @@ def build_context(chunks: list[dict]) -> dict:
             "program_id": chunk["program_id"],
             "program_name": chunk["program_name"],
             "url": chunk["source_url"],
+            # [WBS 6.2 추가] 화면정의서 UI-02 "답변 결과 카드"(지원사업명/접수기간/지원금액/출처 링크)를
+            # 그리는 데 필요한 값. 청크에 이미 들어 있는 값이라 추가 조회 비용이 없고, 여기서 같이 실어두면
+            # 화면이 카드마다 /programs/{id}를 따로 부르지 않아도 됩니다 (api/schemas.py의 Source 참고).
+            "category": chunk.get("category"),
+            "apply_period": _format_period(chunk),
+            "amount": chunk.get("amount_hint"),
+            "target": chunk.get("target"),
         })
 
     return {
