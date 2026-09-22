@@ -36,7 +36,7 @@ from pathlib import Path
 from openai import OpenAI
 
 # LLM 접속 설정(업체/모델명)은 llm_client.py 한 곳에서 관리합니다 (분석모델 정의서 2.4 결정: Upstage).
-from llm_client import LLM_MODEL, get_llm_client
+from llm_client import LLM_MODEL, USE_DEFAULT_LLM, resolve_llm_client
 
 # ── src/indexing/config.py 재사용을 위한 경로 설정 ───────────────────
 # src/indexing/*.py들은 전부 "from config import ..."라는 같은 폴더 기준 import를 쓰는데,
@@ -186,14 +186,14 @@ def extract_slots(
     query: str,
     *,
     candidates: dict | None = None,
-    llm_client: OpenAI | None = None,
+    llm_client: OpenAI | None | object = USE_DEFAULT_LLM,
 ) -> dict:
     """
     입력: query - 사용자 자유 질의
           candidates - {"region": [...], "category": [...]} (없으면 하드코딩 스냅샷 사용.
                        fetch_candidate_values()로 얻은 최신값을 넘기는 걸 권장)
-          llm_client - LLM 클라이언트 (없으면 llm_client.get_llm_client()로 자동 생성 시도.
-                       키가 없으면 LLM 폴백을 건너뛰고 정규식 결과만 반환)
+          llm_client - 생략하면 .env 설정대로 만들고(키가 없으면 LLM 폴백 없이 정규식 결과만),
+                       None을 넘기면 LLM 폴백을 쓰지 않음 (llm_client.py USE_DEFAULT_LLM 주석 참고)
     출력: {"region": str|None, "categories": list[str], "target_keywords": list[str]}
 
     동작: 정규식(방식 A)을 먼저 시도 -> region/categories/target_keywords 중 하나라도 잡혔으면
@@ -207,7 +207,7 @@ def extract_slots(
     if slots["region"] or slots["categories"] or slots["target_keywords"]:
         return slots
 
-    client = llm_client if llm_client is not None else get_llm_client()
+    client = resolve_llm_client(llm_client)
     if client is None:
         return slots  # LLM을 쓸 수 없으면 (정규식이 아무것도 못 찾은) 빈 결과라도 그대로 반환
 

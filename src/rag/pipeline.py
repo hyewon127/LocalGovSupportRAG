@@ -27,7 +27,7 @@ from context_builder import build_context  # noqa: E402
 from generator import generate_answer  # noqa: E402
 from guardrail import has_enough_evidence, validate_answer  # noqa: E402
 from hybrid_search import hybrid_search  # noqa: E402
-from llm_client import get_llm_client  # noqa: E402
+from llm_client import USE_DEFAULT_LLM, resolve_llm_client  # noqa: E402
 from prompt_template import NO_EVIDENCE_MESSAGE  # noqa: E402
 from query_slots import extract_slots, fetch_candidate_values  # noqa: E402
 
@@ -38,7 +38,7 @@ def answer_question(
     question: str,
     *,
     os_client=None,
-    llm_client=None,
+    llm_client=USE_DEFAULT_LLM,
     candidates: dict | None = None,
     region: str | None = None,
     categories: list[str] | None = None,
@@ -48,7 +48,10 @@ def answer_question(
     """
     입력: question - 사용자 질문
           os_client - OpenSearch 클라이언트 (없으면 새로 만듦)
-          llm_client - LLM 클라이언트 (없으면 llm_client.get_llm_client()로 만듦, 키가 없으면 None)
+          llm_client - 생략하면 .env 설정대로 만들고(키가 없으면 LLM 없이 진행), None을 넘기면 LLM을 쓰지 않음.
+                       [WBS 8.4] 예전에는 None도 "생략"으로 취급해서 키가 있으면 LLM을 다시 만들었음
+                       (llm_client.py USE_DEFAULT_LLM 주석 참고). API는 서버 시작 시 만든 값(키가 없으면 None)을
+                       넘기므로, 이제 요청마다 .env를 다시 읽거나 "[LLM 비활성]" 로그를 찍지 않습니다.
           candidates - query_slots.fetch_candidate_values() 결과. 없으면 매 질문마다 집계 쿼리를 한 번 더
                        보내게 되므로, FastAPI에서는 서버 시작 시 한 번만 구해서 계속 넘기는 걸 권장
           region/categories/target_keywords - [WBS 6.2 추가] 화면 필터 패널(화면정의서 SCR-01)에서 사용자가
@@ -69,7 +72,7 @@ def answer_question(
         return result
 
     os_client = os_client or get_client()
-    llm = llm_client if llm_client is not None else get_llm_client()
+    llm = resolve_llm_client(llm_client)
     candidates = candidates or fetch_candidate_values(os_client)
 
     # 5.1 슬롯 추출

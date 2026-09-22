@@ -16,6 +16,8 @@
 from opensearchpy import OpenSearch
 
 from config import INDEX_NAME  # src/indexing/config.py
+# 접수기간 표기 규칙은 챗봇 답변 카드와 같아야 하므로 복사하지 않고 같은 함수를 씁니다 (WBS 8.4에서 중복 제거)
+from context_builder import format_period  # src/rag/context_builder.py
 
 # 목록/상세에서 필요한 필드만 가져옵니다. embedding(숫자 768개)을 빼지 않으면 응답이 수십 배로 커집니다.
 _SUMMARY_FIELDS = [
@@ -25,13 +27,6 @@ _SUMMARY_FIELDS = [
 
 # 한 사업의 청크를 전부 가져올 때 쓰는 상한. 실데이터 최대값은 161개(PBLN_000000000125563)라 여유 있게 잡음.
 _MAX_CHUNKS_PER_PROGRAM_FETCH = 1000
-
-
-def _format_period(src: dict) -> str:
-    # context_builder._format_period()와 같은 규칙 (날짜가 있으면 날짜, 없으면 "예산 소진시까지" 같은 원문)
-    if src.get("apply_start") and src.get("apply_end"):
-        return f"{src['apply_start']} ~ {src['apply_end']}"
-    return src.get("apply_period_raw") or "명시 없음"
 
 
 def _to_summary(src: dict) -> dict:
@@ -44,7 +39,7 @@ def _to_summary(src: dict) -> dict:
         "target": src.get("target"),
         "apply_start": src.get("apply_start"),
         "apply_end": src.get("apply_end"),
-        "apply_period": _format_period(src),
+        "apply_period": format_period(src),
         "amount": src.get("amount_hint"),
         "source_url": src["source_url"],
     }

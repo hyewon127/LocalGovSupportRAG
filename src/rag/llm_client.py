@@ -60,6 +60,15 @@ LLM_TEMPERATURE = 0.2
 LLM_TIMEOUT_SEC = 20
 LLM_MAX_RETRIES = 1
 
+# [WBS 8.4] "LLM 클라이언트를 안 넘겼음"을 나타내는 표시값(sentinel).
+#   예전에는 pipeline.answer_question()/query_slots.extract_slots()가 llm_client=None을 "안 넘겼으니 알아서 만들어라"로
+#   해석해서, 호출하는 쪽이 "LLM 없이 해라"라는 뜻으로 None을 넘겨도 .env에 키가 있으면 get_llm_client()로 다시 만들어
+#   LLM을 불렀습니다. 지금은 키가 없어서 드러나지 않았지만, 키를 넣는 순간 테스트(가짜 LLM 대신 None으로 "LLM 없음"
+#   경로를 검사하는 곳)가 실제 유료 API를 호출하게 되는 잠재 버그였습니다. 그래서 두 뜻을 분리합니다:
+#     인자를 생략(= USE_DEFAULT_LLM) -> .env 설정대로 클라이언트를 만듦
+#     None을 명시                    -> LLM을 쓰지 않음
+USE_DEFAULT_LLM = object()
+
 
 def get_llm_client() -> OpenAI | None:
     """
@@ -78,3 +87,11 @@ def get_llm_client() -> OpenAI | None:
         print(f"[LLM 비활성] .env에 {_SPEC['api_key_env']}가 없거나 예시 값입니다 (LLM_PROVIDER={LLM_PROVIDER}).")
         return None
     return OpenAI(api_key=api_key, base_url=_SPEC["base_url"], timeout=LLM_TIMEOUT_SEC, max_retries=LLM_MAX_RETRIES)
+
+
+def resolve_llm_client(llm_client):
+    """
+    입력: 호출하는 쪽이 넘긴 llm_client 인자 (USE_DEFAULT_LLM / None / 클라이언트 객체)
+    출력: 실제로 쓸 클라이언트 또는 None. 위 USE_DEFAULT_LLM 주석의 규칙을 한 곳에서 적용합니다.
+    """
+    return get_llm_client() if llm_client is USE_DEFAULT_LLM else llm_client

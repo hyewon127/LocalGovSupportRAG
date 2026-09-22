@@ -11,7 +11,6 @@
 #   그래서 "지자체 필터"는 사실상 걸러낼 값이 하나뿐이라, ①~③은 category 조합 위주로 보고
 #   region은 "문법이 동작하는지"만 확인하는 용도로 다룹니다.
 
-import json
 
 from config import INDEX_NAME, check_connection, get_client
 

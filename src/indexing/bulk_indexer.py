@@ -1,7 +1,7 @@
 # [WBS 4.4] Bulk API 배치 색인 스크립트 - chunks_embedded.json을 오픈서치에 넣기
 #
-# 입력: data/processed/chunks_embedded.json (embedder.py 출력, embedding이 채워진 2,700개)
-# 출력: 오픈서치 인덱스 idx_support_chunk 에 문서 2,700개 색인
+# 입력: data/processed/chunks_embedded.json (embedder.py 출력, embedding이 채워진 청크 3,884개 - 2026-09-16 HWP/HWPX 추출 추가 후 (최초 PDF만일 때 2,700개))
+# 출력: 오픈서치 인덱스 idx_support_chunk 에 청크 수만큼 문서 색인 (아래 설명의 2,700은 작성 당시 기준 예시)
 #
 # [Bulk API가 뭐고 왜 쓰는가]
 #   맛보기 스크립트에서 썼던 client.index()는 문서 1개당 HTTP 요청 1번입니다.

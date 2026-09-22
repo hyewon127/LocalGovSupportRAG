@@ -1,4 +1,5 @@
 # [WBS 8.1] 예외 처리 테스트 - 빈 검색결과, OpenSearch/LLM/DB 오류 상황에서 사용자가 원인을 알 수 있는 응답이 나오는지
+# (+ WBS 8.4 리팩토링으로 바뀐 "LLM 주입 규칙" 검증)
 #
 # 실행 (OpenSearch 실행 중 - 서버 시작 처리(lifespan)에 필요, 프로젝트 루트에서):
 #   .venv\Scripts\python.exe tests\test_error_handling.py
@@ -13,7 +14,6 @@ import sqlite3
 import sys
 import tempfile
 from pathlib import Path
-from types import SimpleNamespace
 
 os.environ["CHAT_LOG_DB_PATH"] = str(Path(tempfile.mkdtemp()) / "test_chat_log.db")
 
@@ -179,6 +179,51 @@ def test_llm_client_settings() -> None:
             os.environ[env_name] = saved
 
 
+def test_llm_injection_rule(real: AppResources) -> None:
+    """
+    [WBS 8.4] llm_client=None을 넘기면 .env 설정과 상관없이 LLM을 쓰지 않아야 한다.
+    get_llm_client()를 "불리면 실패하는 함수"로 바꿔 놓고 확인합니다 - 네트워크 요청 없이 "호출 여부"만 검사할 수 있습니다.
+    (예전 코드는 None을 "생략"으로 보고 get_llm_client()를 다시 불러서, 키가 있으면 실제 LLM을 호출했음)
+    """
+    print("\n── LLM 주입 규칙 (None = LLM 안 씀) ──")
+    import llm_client
+    from pipeline import answer_question
+    from query_slots import extract_slots
+
+    original = llm_client.get_llm_client
+    calls = []
+
+    def must_not_be_called():
+        calls.append(1)
+        raise AssertionError("None을 넘겼는데 LLM 클라이언트를 만들려고 함")
+
+    # 버그는 ".env에 키가 있을 때"만 드러나므로 가짜 키로 그 상황을 만듭니다. 키가 없는 PC에서는 옛 코드도
+    # get_llm_client()가 None을 돌려줘서 우연히 통과하기 때문에, 이게 없으면 테스트가 버그를 못 잡습니다.
+    # (옛 코드 + 가짜 키 = 실제 Upstage로 요청 -> 401 -> llm_error가 나서 아래 첫 검사가 실패함)
+    env_name = llm_client._SPEC["api_key_env"]
+    saved_key = os.environ.get(env_name)
+    os.environ[env_name] = "test-key-not-real"
+    llm_client.get_llm_client = must_not_be_called
+    try:
+        result = answer_question(Q, os_client=real.os_client, llm_client=None, candidates=real.candidates)
+        check("answer_question(llm_client=None) -> LLM 생성 시도 없이 llm_unavailable",
+              result["status"] == "llm_unavailable" and not calls, result["status"])
+        # 정규식으로 아무것도 못 잡는 문장 = 원래라면 LLM 폴백을 시도하는 경로
+        slots = extract_slots("요식업 하는데 받을 수 있는 지원금 있나요", candidates=real.candidates, llm_client=None)
+        check("extract_slots(llm_client=None) -> LLM 폴백 없이 정규식 결과", not calls and slots["categories"] == [], slots)
+        try:
+            extract_slots("요식업 하는데 받을 수 있는 지원금 있나요", candidates=real.candidates)
+            check("인자 생략 시에는 .env 설정대로 클라이언트를 만들려고 함", False, "get_llm_client 미호출")
+        except AssertionError:
+            check("인자 생략 시에는 .env 설정대로 클라이언트를 만들려고 함", len(calls) == 1)
+    finally:
+        llm_client.get_llm_client = original
+        if saved_key is None:
+            os.environ.pop(env_name, None)
+        else:
+            os.environ[env_name] = saved_key
+
+
 def test_ui_messages() -> None:
     print("\n── 화면(ui/api_client.py) 에러 메시지 변환 ──")
     original = requests.request
@@ -222,6 +267,7 @@ def main() -> int:
     with TestClient(app, raise_server_exceptions=False) as c:
         real = app.state.resources
         test_api(c, real)
+        test_llm_injection_rule(real)
     test_startup_without_db()
     test_llm_client_settings()
     test_ui_messages()

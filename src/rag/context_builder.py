@@ -15,8 +15,11 @@
 #   핵심 요구사항(분석모델 정의서 2.5 평가 설계: 출처 인용률 95% 이상)이 실제로는 틀린 링크를
 #   보여주는 결과로 이어집니다 - 그래서 build_context() 하나에서 둘을 같이 만들어 어긋날 여지를 없앴습니다.
 
-def _format_period(chunk: dict) -> str:
+def format_period(chunk: dict) -> str:
     """
+    [WBS 8.4] 이름 앞의 _를 뗐습니다(공개 함수). src/api/program_service.py에 똑같은 함수가 한 벌 더 있었는데,
+    한쪽만 고치면 챗봇 답변 카드와 지원사업 상세 화면의 접수기간 표기가 서로 달라지므로 여기 하나로 합쳤습니다.
+
     입력: hybrid_search()가 반환한 청크 1개 (apply_start/apply_end/apply_period_raw 포함)
     출력: 화면에 보여줄 접수기간 문자열
     chunker.py의 parse_period()가 "예산 소진시까지"처럼 날짜로 못 바꾼 값은 apply_start/end를
@@ -51,7 +54,7 @@ def build_context(chunks: list[dict]) -> dict:
         context_blocks.append(
             f"[{i}] {chunk['program_name']} ({chunk['region_name']} / {chunk['category']})\n"
             f"- 지원대상: {chunk.get('target') or '명시 없음'}\n"
-            f"- 접수기간: {_format_period(chunk)}\n"
+            f"- 접수기간: {format_period(chunk)}\n"
             f"- 지원금액: {chunk.get('amount_hint') or '명시 없음'}\n"
             f"- 본문: {chunk['chunk_text']}"
         )
@@ -64,7 +67,7 @@ def build_context(chunks: list[dict]) -> dict:
             # 그리는 데 필요한 값. 청크에 이미 들어 있는 값이라 추가 조회 비용이 없고, 여기서 같이 실어두면
             # 화면이 카드마다 /programs/{id}를 따로 부르지 않아도 됩니다 (api/schemas.py의 Source 참고).
             "category": chunk.get("category"),
-            "apply_period": _format_period(chunk),
+            "apply_period": format_period(chunk),
             "amount": chunk.get("amount_hint"),
             "target": chunk.get("target"),
         })

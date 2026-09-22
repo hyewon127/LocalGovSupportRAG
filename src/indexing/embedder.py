@@ -1,4 +1,4 @@
-# [WBS 4.3] 임베딩 생성 스크립트 - chunks.json(2,700개)의 chunk_text를 벡터로 변환
+# [WBS 4.3] 임베딩 생성 스크립트 - chunks.json(청크 3,884개 - 2026-09-16 HWP/HWPX 추출 추가 후 (최초 PDF만일 때 2,700개))의 chunk_text를 벡터로 변환
 #
 # 입력: data/processed/chunks.json          (chunker.py 출력, embedding 필드가 전부 None)
 # 출력: data/processed/chunks_embedded.json (embedding 필드가 숫자 배열로 채워진 같은 구조)
