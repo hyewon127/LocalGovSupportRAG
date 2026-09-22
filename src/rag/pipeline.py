@@ -43,6 +43,7 @@ def answer_question(
     region: str | None = None,
     categories: list[str] | None = None,
     target_keywords: list[str] | None = None,
+    return_trace: bool = False,
 ) -> dict:
     """
     입력: question - 사용자 질문
@@ -52,8 +53,21 @@ def answer_question(
                        보내게 되므로, FastAPI에서는 서버 시작 시 한 번만 구해서 계속 넘기는 걸 권장
           region/categories/target_keywords - [WBS 6.2 추가] 화면 필터 패널(화면정의서 SCR-01)에서 사용자가
                        직접 고른 값. 비워두면 기존처럼 질문 문장에서 추출한 슬롯만 씁니다.
+          return_trace - [WBS 7.3 추가] True면 결과에 "trace"(검색된 청크, 가드레일 적용 전 LLM 원본 답변)를
+                       붙입니다. 평가(src/evaluation/answer_eval.py)가 "모델이 원래 뭐라고 답했는지"를 봐야
+                       출처 인용률을 잴 수 있는데, 최종 answer는 가드레일이 이미 고친/버린 값이라서입니다.
+                       API(schemas.ChatResponse)에는 trace 필드가 없어서 켜도 응답에 실리지 않습니다.
     출력: {"status", "answer", "sources", "slots", ...} (상단 [응답 형식] 참고)
     """
+    # 평가용 중간값. 단계마다 채워 두고, 어느 단계에서 끝나든 finish()가 한 곳에서 붙입니다
+    # (return 문마다 trace 코드를 넣으면 한 군데를 빠뜨리기 쉬움).
+    trace = {"chunks": None, "raw_answer": None}
+
+    def finish(result: dict) -> dict:
+        if return_trace:
+            result["trace"] = trace
+        return result
+
     os_client = os_client or get_client()
     llm = llm_client if llm_client is not None else get_llm_client()
     candidates = candidates or fetch_candidate_values(os_client)
@@ -83,29 +97,31 @@ def answer_question(
         target_keywords=slots["target_keywords"],
         client=os_client,
     )
+    trace["chunks"] = chunks
 
     # 5.6 [호출 전] 가드레일 - 관련 있는 근거가 없으면 LLM을 부르지 않음
     if not has_enough_evidence(chunks):
-        return {"status": "no_evidence", "answer": NO_EVIDENCE_MESSAGE, "sources": [], "slots": slots}
+        return finish({"status": "no_evidence", "answer": NO_EVIDENCE_MESSAGE, "sources": [], "slots": slots})
 
     # 5.3 컨텍스트 조립
     context = build_context(chunks)
 
     if llm is None:
         # LLM이 없어도 검색은 됐으므로, 빈손으로 돌려보내지 않고 찾은 공고 목록은 보여줍니다.
-        return {"status": "llm_unavailable", "answer": LLM_UNAVAILABLE_MESSAGE,
-                "sources": context["sources"], "slots": slots}
+        return finish({"status": "llm_unavailable", "answer": LLM_UNAVAILABLE_MESSAGE,
+                       "sources": context["sources"], "slots": slots})
 
     # 5.4 + 5.5 프롬프트 구성 및 답변 생성
     try:
         raw_answer = generate_answer(question, context["context_text"], llm)
     except Exception as e:
-        return {"status": "llm_error", "answer": LLM_UNAVAILABLE_MESSAGE,
-                "sources": context["sources"], "slots": slots, "error": str(e)}
+        return finish({"status": "llm_error", "answer": LLM_UNAVAILABLE_MESSAGE,
+                       "sources": context["sources"], "slots": slots, "error": str(e)})
+    trace["raw_answer"] = raw_answer
 
     # 5.6 [호출 후] 가드레일 - 인용 검증
     checked = validate_answer(raw_answer, context["sources"])
-    return {**checked, "slots": slots}
+    return finish({**checked, "slots": slots})
 
 
 if __name__ == "__main__":
