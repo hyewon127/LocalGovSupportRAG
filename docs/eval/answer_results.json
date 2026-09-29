@@ -1,7 +1,7 @@
 {
-  "evaluated_at": "2026-09-22T11:25:54",
+  "evaluated_at": "2026-09-29T20:35:54",
   "eval_set_version": "2026-09-22",
-  "current_threshold": 0.77,
+  "current_threshold": 0.75,
   "guardrail": {
     "records": [
       {
@@ -9,420 +9,420 @@
         "variant": "original",
         "text": "장사가 너무 안 돼서 가게를 정리하려고 하는데 소상공인 폐업 지원 받을 수 있나요?",
         "max_knn_score": 0.86857677,
-        "retrieval_ms": 22466.188599995803
+        "retrieval_ms": 20014.329900033772
       },
       {
         "id": "Q01",
         "variant": "paraphrase",
         "text": "매출이 계속 줄어서 가게 문을 닫으려는데, 점포 철거비나 정리 비용을 도와주는 곳 있을까요?",
         "max_knn_score": 0.8006621,
-        "retrieval_ms": 50.20820000208914
+        "retrieval_ms": 54.04630000703037
       },
       {
         "id": "Q02",
         "variant": "original",
         "text": "소상공인인데 온라인 쇼핑몰에 입점해서 팔고 싶어요. 도와주는 사업 있어?",
         "max_knn_score": 0.8565935,
-        "retrieval_ms": 47.38579998956993
+        "retrieval_ms": 53.85180003941059
       },
       {
         "id": "Q02",
         "variant": "paraphrase",
         "text": "동네에서 작은 가게를 하는데 인터넷으로도 물건을 팔아보고 싶어요. 도와주는 제도 있나요?",
         "max_knn_score": 0.79496354,
-        "retrieval_ms": 48.1283999979496
+        "retrieval_ms": 52.504600025713444
       },
       {
         "id": "Q03",
         "variant": "original",
         "text": "라이브커머스 방송을 해보고 싶은데 제작비 지원해주는 곳 있나요",
         "max_knn_score": 0.81585467,
-        "retrieval_ms": 43.24930004077032
+        "retrieval_ms": 46.30530020222068
       },
       {
         "id": "Q03",
         "variant": "paraphrase",
         "text": "실시간 방송으로 상품을 소개하면서 파는 걸 해보고 싶은데 촬영비를 지원받을 수 있나요?",
         "max_knn_score": 0.8123827,
-        "retrieval_ms": 49.85730000771582
+        "retrieval_ms": 50.96390005201101
       },
       {
         "id": "Q04",
         "variant": "original",
         "text": "화장품 회사인데 일본 시장에 진출하고 싶어요",
         "max_knn_score": 0.79435194,
-        "retrieval_ms": 43.29719999805093
+        "retrieval_ms": 45.59789993800223
       },
       {
         "id": "Q04",
         "variant": "paraphrase",
         "text": "스킨케어 제품을 만드는 회사인데 도쿄 쪽 소비자들한테 팔아보고 싶어요",
         "max_knn_score": 0.7582445,
-        "retrieval_ms": 47.438799985684454
+        "retrieval_ms": 52.6630999520421
       },
       {
         "id": "Q05",
         "variant": "original",
         "text": "수출할 때 드는 해외 물류비나 배송비를 지원받을 수 있을까요?",
         "max_knn_score": 0.85467505,
-        "retrieval_ms": 42.61689999839291
+        "retrieval_ms": 48.08010021224618
       },
       {
         "id": "Q05",
         "variant": "paraphrase",
         "text": "해외 바이어에게 제품을 보낼 때 드는 운송비가 부담돼요. 비용을 보전해주는 제도가 있을까요?",
         "max_knn_score": 0.8519956,
-        "retrieval_ms": 47.95310000190511
+        "retrieval_ms": 58.900800067931414
       },
       {
         "id": "Q06",
         "variant": "original",
         "text": "해외 수출하려면 CE나 FDA 같은 인증이 필요한데 인증 비용 지원 있어?",
         "max_knn_score": 0.84185946,
-        "retrieval_ms": 46.900800021830946
+        "retrieval_ms": 54.71940012648702
       },
       {
         "id": "Q06",
         "variant": "paraphrase",
         "text": "유럽에 제품을 팔려면 CE 마크를 받아야 한다는데 그 비용을 나라에서 보태주나요?",
         "max_knn_score": 0.7925788,
-        "retrieval_ms": 48.80699998466298
+        "retrieval_ms": 50.88549992069602
       },
       {
         "id": "Q07",
         "variant": "original",
         "text": "경쟁사랑 특허 분쟁이 생겼어요. 소송 대응을 도와주는 지원사업 있나요?",
         "max_knn_score": 0.85602486,
-        "retrieval_ms": 44.48380001122132
+        "retrieval_ms": 51.67069984599948
       },
       {
         "id": "Q07",
         "variant": "paraphrase",
         "text": "다른 회사가 우리가 발명을 베꼈다며 고소했어요. 변호사 비용 같은 걸 도와주는 곳이 있나요?",
         "max_knn_score": 0.7928708,
-        "retrieval_ms": 45.306599989999086
+        "retrieval_ms": 54.623400093987584
       },
       {
         "id": "Q08",
         "variant": "original",
         "text": "우리 회사 핵심 기술이 유출될까 걱정돼요. 기술 보호 관련 지원 알려줘",
         "max_knn_score": 0.8311049,
-        "retrieval_ms": 45.111300016287714
+        "retrieval_ms": 48.56529994867742
       },
       {
         "id": "Q08",
         "variant": "paraphrase",
         "text": "퇴사한 직원이 설계 도면을 경쟁사에 넘길까 봐 불안해요. 미리 막을 수 있게 도와주는 제도 있어?",
         "max_knn_score": 0.77279323,
-        "retrieval_ms": 46.9059000024572
+        "retrieval_ms": 50.99469982087612
       },
       {
         "id": "Q09",
         "variant": "original",
         "text": "대학생 인턴을 뽑으면 회사에 지원금이 나오는 사업이 있나요?",
         "max_knn_score": 0.8702676,
-        "retrieval_ms": 43.673900014255196
+        "retrieval_ms": 48.381099943071604
       },
       {
         "id": "Q09",
         "variant": "paraphrase",
         "text": "졸업 전 학생들을 몇 달간 회사에서 실무 경험시키면 정부에서 비용을 대주나요?",
         "max_knn_score": 0.8431198,
-        "retrieval_ms": 49.32290001306683
+        "retrieval_ms": 48.52419998496771
       },
       {
         "id": "Q10",
         "variant": "original",
         "text": "외국인 전문인력을 채용하려고 하는데 비자 발급 추천을 받을 수 있나요",
         "max_knn_score": 0.8217639,
-        "retrieval_ms": 44.974800024647266
+        "retrieval_ms": 46.24369996599853
       },
       {
         "id": "Q10",
         "variant": "paraphrase",
         "text": "해외 엔지니어를 데려와서 일하게 하고 싶은데 체류 자격 받는 걸 도와주는 제도 있어?",
         "max_knn_score": 0.80262774,
-        "retrieval_ms": 49.20549999224022
+        "retrieval_ms": 47.73869994096458
       },
       {
         "id": "Q11",
         "variant": "original",
         "text": "직원이 육아휴직을 쓰면 회사가 받을 수 있는 지원금 있어?",
         "max_knn_score": 0.8441067,
-        "retrieval_ms": 45.7145000109449
+        "retrieval_ms": 51.48090003058314
       },
       {
         "id": "Q11",
         "variant": "paraphrase",
         "text": "직원이 아기가 태어나서 몇 달 쉬게 됐는데, 그 기간에 회사가 받을 수 있는 돈이 있나요?",
         "max_knn_score": 0.8208903,
-        "retrieval_ms": 60.93890004558489
+        "retrieval_ms": 51.132099935784936
       },
       {
         "id": "Q12",
         "variant": "original",
         "text": "50대 경력직을 채용하려는 서울 중소기업인데 인건비 지원 사업 있나요?",
         "max_knn_score": 0.8588992,
-        "retrieval_ms": 55.80569995800033
+        "retrieval_ms": 48.30259992741048
       },
       {
         "id": "Q12",
         "variant": "paraphrase",
         "text": "나이가 좀 있는 베테랑을 뽑고 싶은 회사인데 채용하면 임금 일부를 보조해주는 게 있나요?",
         "max_knn_score": 0.84507334,
-        "retrieval_ms": 47.68359998706728
+        "retrieval_ms": 53.808100055903196
       },
       {
         "id": "Q13",
         "variant": "original",
         "text": "공장 작업환경 안전시설을 개선하려는데 비용 지원 받을 수 있을까요",
         "max_knn_score": 0.8693675,
-        "retrieval_ms": 46.93389998283237
+        "retrieval_ms": 46.47710011340678
       },
       {
         "id": "Q13",
         "variant": "paraphrase",
         "text": "공장에서 끼임 사고가 날까 봐 방호장치를 달려고 하는데 설치비 보조가 되나요?",
         "max_knn_score": 0.8432736,
-        "retrieval_ms": 47.1846999716945
+        "retrieval_ms": 47.0081998500973
       },
       {
         "id": "Q14",
         "variant": "original",
         "text": "서울에 있는 중소기업인데 운영자금 저리 대출 받을 수 있는 곳 알려줘",
         "max_knn_score": 0.84774035,
-        "retrieval_ms": 45.89980002492666
+        "retrieval_ms": 47.80720011331141
       },
       {
         "id": "Q14",
         "variant": "paraphrase",
         "text": "강남에서 제조업을 하는데 직원 월급 줄 돈이 모자라서 싼 이자로 돈을 빌리고 싶어요",
         "max_knn_score": 0.75367534,
-        "retrieval_ms": 45.49669998232275
+        "retrieval_ms": 49.27550000138581
       },
       {
         "id": "Q15",
         "variant": "original",
         "text": "사회적기업도 받을 수 있는 대출이나 이자 지원이 있나요?",
         "max_knn_score": 0.9036336,
-        "retrieval_ms": 41.91470000660047
+        "retrieval_ms": 47.65389999374747
       },
       {
         "id": "Q15",
         "variant": "paraphrase",
         "text": "취약계층을 고용하는 착한 기업을 운영하는데 은행에서 빌린 돈의 이자를 줄여주는 제도가 있나요?",
         "max_knn_score": 0.84582883,
-        "retrieval_ms": 45.20539997611195
+        "retrieval_ms": 49.691899912431836
       },
       {
         "id": "Q16",
         "variant": "original",
         "text": "제조 공장에 스마트공장 시스템을 도입하고 싶어요",
         "max_knn_score": 0.8113471,
-        "retrieval_ms": 41.78899998078123
+        "retrieval_ms": 48.3772000297904
       },
       {
         "id": "Q16",
         "variant": "paraphrase",
         "text": "생산라인에 센서랑 자동화 설비를 깔아서 공정을 디지털로 바꾸고 싶어요",
-        "max_knn_score": 0.82624215,
-        "retrieval_ms": 44.814899971242994
+        "max_knn_score": 0.8262421,
+        "retrieval_ms": 45.385299948975444
       },
       {
         "id": "Q17",
         "variant": "original",
         "text": "기업부설연구소를 새로 설립하려고 하는데 도움받을 수 있는 사업",
         "max_knn_score": 0.85073334,
-        "retrieval_ms": 45.10270000901073
+        "retrieval_ms": 47.65990003943443
       },
       {
         "id": "Q17",
         "variant": "paraphrase",
         "text": "회사 안에 R&D 전담 조직을 만들어서 정식으로 인정받고 싶은데 도와주는 곳 있어?",
         "max_knn_score": 0.8031062,
-        "retrieval_ms": 48.06029994506389
+        "retrieval_ms": 60.740199871361256
       },
       {
         "id": "Q18",
         "variant": "original",
         "text": "로봇 기술 연구개발 과제 지원 공고 있어?",
         "max_knn_score": 0.8708823,
-        "retrieval_ms": 41.967199998907745
+        "retrieval_ms": 48.092300072312355
       },
       {
         "id": "Q18",
         "variant": "paraphrase",
         "text": "산업용 자동화 기계팔 관련 신기술 개발비를 정부 과제로 받고 싶어요",
         "max_knn_score": 0.8350179,
-        "retrieval_ms": 44.913899968378246
+        "retrieval_ms": 44.3206001073122
       },
       {
         "id": "Q19",
         "variant": "original",
         "text": "장애인이 창업하려고 하는데 지원해주는 프로그램 있나요",
-        "max_knn_score": 0.88968515,
-        "retrieval_ms": 40.94380000606179
+        "max_knn_score": 0.8896852,
+        "retrieval_ms": 49.50009984895587
       },
       {
         "id": "Q19",
         "variant": "paraphrase",
         "text": "몸이 불편해서 휠체어를 타는데 제 가게를 차리고 싶어요. 도와주는 제도 있나요?",
         "max_knn_score": 0.7697703,
-        "retrieval_ms": 44.6463999687694
+        "retrieval_ms": 48.51420014165342
       },
       {
         "id": "Q20",
         "variant": "original",
         "text": "우리 제품을 조달청 벤처나라에 등록해서 공공기관에 팔고 싶어요",
         "max_knn_score": 0.85116434,
-        "retrieval_ms": 44.27740001119673
+        "retrieval_ms": 48.25399979017675
       },
       {
         "id": "Q20",
         "variant": "paraphrase",
         "text": "우리 신제품을 관공서가 온라인으로 바로 구매할 수 있는 쇼핑몰에 올리고 싶어요",
-        "max_knn_score": 0.78061557,
-        "retrieval_ms": 58.69189999066293
+        "max_knn_score": 0.7806155,
+        "retrieval_ms": 46.604900155216455
       },
       {
         "id": "Q21",
         "variant": "original",
         "text": "팁스(TIPS) 프로그램으로 투자 연계 지원을 받고 싶은 스타트업입니다",
         "max_knn_score": 0.9056442,
-        "retrieval_ms": 57.768700004089624
+        "retrieval_ms": 49.31560019031167
       },
       {
         "id": "Q21",
         "variant": "paraphrase",
         "text": "엔젤투자사한테 투자를 받으면 정부가 연구개발비를 매칭으로 더 얹어주는 프로그램이 있다던데요",
         "max_knn_score": 0.9036515,
-        "retrieval_ms": 49.883299972862005
+        "retrieval_ms": 52.34210006892681
       },
       {
         "id": "Q22",
         "variant": "original",
         "text": "아직 사업자 등록 전인 예비창업자인데 사업화 자금 받을 수 있나요?",
         "max_knn_score": 0.8506656,
-        "retrieval_ms": 46.29399999976158
+        "retrieval_ms": 48.79699996672571
       },
       {
         "id": "Q22",
         "variant": "paraphrase",
         "text": "회사를 차리기 전 단계인데 아이템을 시제품으로 만드는 데 쓸 돈을 받을 수 있을까?",
         "max_knn_score": 0.8203969,
-        "retrieval_ms": 44.94459996931255
+        "retrieval_ms": 52.947199903428555
       },
       {
         "id": "Q23",
         "variant": "original",
         "text": "스타트업 창업 경진대회에 나가보고 싶어요. 모집 중인 대회 있어?",
         "max_knn_score": 0.8696693,
-        "retrieval_ms": 44.80390000389889
+        "retrieval_ms": 45.977799920365214
       },
       {
         "id": "Q23",
         "variant": "paraphrase",
         "text": "사업 아이디어로 상금을 걸고 겨루는 대회에 나가보고 싶어요",
         "max_knn_score": 0.79977,
-        "retrieval_ms": 44.81610003858805
+        "retrieval_ms": 48.250599997118115
       },
       {
         "id": "Q24",
         "variant": "original",
         "text": "해킹이 걱정되는데 중소기업 정보보호 솔루션 도입 지원 받을 수 있을까요",
         "max_knn_score": 0.86589843,
-        "retrieval_ms": 45.14259996358305
+        "retrieval_ms": 46.02230014279485
       },
       {
         "id": "Q24",
         "variant": "paraphrase",
         "text": "랜섬웨어 공격을 받을까 봐 걱정인데 보안 장비 도입 비용을 도와주나요?",
         "max_knn_score": 0.75834215,
-        "retrieval_ms": 51.5538000036031
+        "retrieval_ms": 46.68559995479882
       },
       {
         "id": "Q25",
         "variant": "original",
         "text": "중소기업 ESG 경영 도입 컨설팅 지원사업 알려주세요",
         "max_knn_score": 0.8991563,
-        "retrieval_ms": 40.81919998861849
+        "retrieval_ms": 47.730700112879276
       },
       {
         "id": "Q25",
         "variant": "paraphrase",
         "text": "탄소 배출이나 사회적 책임 경영을 준비하라는 거래처 요구가 있어서 자문을 받고 싶어요",
         "max_knn_score": 0.822502,
-        "retrieval_ms": 44.25089998403564
+        "retrieval_ms": 46.3810998480767
       },
       {
         "id": "Q26",
         "variant": "original",
         "text": "회사를 다른 사람에게 넘기려고 하는데 M&A나 기업승계 지원이 있나요",
-        "max_knn_score": 0.8340106,
-        "retrieval_ms": 51.64159997366369
+        "max_knn_score": 0.83401054,
+        "retrieval_ms": 48.2340999878943
       },
       {
         "id": "Q26",
         "variant": "paraphrase",
         "text": "은퇴를 앞두고 회사를 자녀나 제3자에게 물려주고 싶은데 도움받을 수 있나요?",
         "max_knn_score": 0.7916634,
-        "retrieval_ms": 46.14120000042021
+        "retrieval_ms": 47.45079996064305
       },
       {
         "id": "Q27",
         "variant": "original",
         "text": "1인 자영업자도 고용보험료 지원받을 수 있나요?",
         "max_knn_score": 0.8543335,
-        "retrieval_ms": 57.217199995648116
+        "retrieval_ms": 44.21820002608001
       },
       {
         "id": "Q27",
         "variant": "paraphrase",
         "text": "혼자 가게를 운영하는데 실직 대비 보험에 가입하면 보험료를 돌려받을 수 있나요?",
-        "max_knn_score": 0.75749964,
-        "retrieval_ms": 46.571799961384386
+        "max_knn_score": 0.7574997,
+        "retrieval_ms": 46.37090000323951
       },
       {
         "id": "O01",
         "variant": "off_topic",
         "text": "주말에 서울에서 가볼 만한 전시회 추천해줘",
         "max_knn_score": 0.71557486,
-        "retrieval_ms": 36.975800001528114
+        "retrieval_ms": 46.03209998458624
       },
       {
         "id": "O02",
         "variant": "off_topic",
         "text": "아파트 청약 1순위 조건이 뭐야?",
         "max_knn_score": 0.750402,
-        "retrieval_ms": 45.94770004041493
+        "retrieval_ms": 44.98480004258454
       },
       {
         "id": "O03",
         "variant": "off_topic",
         "text": "운전면허 갱신은 어디서 하나요?",
-        "max_knn_score": 0.73258513,
-        "retrieval_ms": 38.00409997347742
+        "max_knn_score": 0.7325851,
+        "retrieval_ms": 49.84130011871457
       },
       {
         "id": "O04",
         "variant": "off_topic",
         "text": "비트코인 앞으로 오를까?",
         "max_knn_score": 0.636549,
-        "retrieval_ms": 31.92709997529164
+        "retrieval_ms": 34.8937998060137
       },
       {
         "id": "O05",
         "variant": "off_topic",
         "text": "개인 주택담보대출 금리 비교해줘",
         "max_knn_score": 0.8257283,
-        "retrieval_ms": 36.57009999733418
+        "retrieval_ms": 47.05890011973679
       },
       {
         "id": "O06",
         "variant": "off_topic",
         "text": "감기 빨리 낫는 방법 알려줘",
         "max_knn_score": 0.6614926,
-        "retrieval_ms": 29.73280003061518
+        "retrieval_ms": 41.836800053715706
       }
     ],
     "threshold_table": [
@@ -525,7 +525,549 @@
     ]
   },
   "answers": {
-    "measured": false,
-    "reason": "LLM API 키가 없어 답변을 생성할 수 없음 (LLM_PROVIDER=upstage). .env에 키를 넣고 이 스크립트를 다시 실행하면 측정됩니다."
+    "measured": true,
+    "llm": "ollama/qwen2.5-rag:7b",
+    "summary": {
+      "num_generated": 29,
+      "num_answered": 26,
+      "citation_rate": 1.0,
+      "invalid_citation_answer_rate": 0.0,
+      "hallucination_proxy_rate": 0.038461538461538464,
+      "off_topic_correct_refusal": 1.0,
+      "final_status_counts": {
+        "no_evidence": 7,
+        "ok": 26
+      },
+      "latency_ms_mean_with_llm": 6429.721289651533,
+      "latency_ms_p95_with_llm": 9827.862699981779
+    },
+    "per_query": [
+      {
+        "id": "Q01",
+        "type": "on_topic",
+        "question": "장사가 너무 안 돼서 가게를 정리하려고 하는데 소상공인 폐업 지원 받을 수 있나요?",
+        "final_status": "ok",
+        "raw_answer": "**새 길 여는 폐업지원 사업** [1]\n- 지원대상: 서울시 소재 폐업 예정 점포형 소상공인\n- 접수기간: 예산 소진시까지\n- 지원내용: 사업정리 컨설팅, 전직 지원프로그램 안내 및 마인드셋 교육, 솔루션 이행비용 지원 (최대 3백만 원 이내)\n\n**희망리턴패키지 원스톱폐업지원 사업** [2]\n- 지원대상: 폐업(예정) 소상공인\n- 접수기간: ’26년 1월~예산 소진 시\n- 지원내용: 사업정리컨설팅, 점포철거비, 법률자문, 채무조정 등\n\n**2026년 중소벤처기업부 소상공인 지원사업 통합 공고** [3]\n- 지원대상: 경영위기 및 폐업(예정) 소상공인\n- 접수기간: 세부사업별 상이\n- 지원내용: 원스톱폐업지원(사업정리컨설팅, 점포철거비지원, 법률자문, 채무조정 등)\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 12207.01040001586,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          1,
+          2,
+          3
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q02",
+        "type": "on_topic",
+        "question": "소상공인인데 온라인 쇼핑몰에 입점해서 팔고 싶어요. 도와주는 사업 있어?",
+        "final_status": "ok",
+        "raw_answer": "**온라인쇼핑몰 판매지원사업** [1][3][5]\n- 지원대상: 소상공인\n- 접수기간: 2026-07-20 ~ 2026-08-24 [5]\n- 지원금액: 600만원 [3]\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 5372.762999963015,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          1,
+          3,
+          5
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q03",
+        "type": "on_topic",
+        "question": "라이브커머스 방송을 해보고 싶은데 제작비 지원해주는 곳 있나요",
+        "final_status": "ok",
+        "raw_answer": "**OO 지원사업** [1]\n- 지원대상: 소상공인\n- 접수기간: 모집 완료시\n- 지원금액: 6백만원\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 4235.19379994832,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          1
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q04",
+        "type": "on_topic",
+        "question": "화장품 회사인데 일본 시장에 진출하고 싶어요",
+        "final_status": "ok",
+        "raw_answer": "**민관협력 K-뷰티 중소벤처기업 일본 데뷔 프로그램** [1]\n- 지원대상: 중소기업\n- 접수기간: 2026-08-06 ~ 2026-08-21\n- 지원내용: 인플루언서 마케팅을 통한 홍보, K-뷰티 위크 연계 전시부스 운영, 일본 유통 파트너사 네트워킹\n\n**2026년 해외규격인증획득지원사업(전략지원)** [2]\n- 지원대상: 중소기업\n- 접수기간: 2026-01-30 ~ 2026-11-30\n- 지원금액: 3,000만원\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 8353.068500058725,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          1,
+          2
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q05",
+        "type": "on_topic",
+        "question": "수출할 때 드는 해외 물류비나 배송비를 지원받을 수 있을까요?",
+        "final_status": "ok",
+        "raw_answer": "**중동상황 대응 수출위기 극복 물류지원금 지원사업** [1][3][4]\n- 지원대상: 중소기업\n- 접수기간: 예산 소진시까지\n- 지원금액: 3,000만원\n\n**중동 특화 긴급 물류바우처 사업** [2]\n- 지원대상: 중소기업\n- 접수기간: 예산 소진시까지\n- 지원금액: 15백만원\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 6288.151900051162,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q06",
+        "type": "on_topic",
+        "question": "해외 수출하려면 CE나 FDA 같은 인증이 필요한데 인증 비용 지원 있어?",
+        "final_status": "ok",
+        "raw_answer": "**해외규격인증획득지원사업(전략지원)** [2][3]\n- 지원대상: 중소기업\n- 접수기간: 2026-01-30 ~ 2026-11-30\n- 지원금액: 3,000만원\n\n해외 규격인증 획득을 위한 비용 지원이 가능합니다. 지원 대상은 중소기업이며, 접수 기간은 2026년 1월 30일부터 11월 30일까지입니다. 지원 내용은 유럽 CE, 전자파, 전기안전, 무선통신, 의료기기 등 다양한 분야의 인증 비용을 지원하며, 최대 3,000만원까지 지원받을 수 있습니다.\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 7859.698900021613,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          2,
+          3
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": [
+          "30일",
+          "30일"
+        ]
+      },
+      {
+        "id": "Q07",
+        "type": "on_topic",
+        "question": "경쟁사랑 특허 분쟁이 생겼어요. 소송 대응을 도와주는 지원사업 있나요?",
+        "final_status": "ok",
+        "raw_answer": "**2026년 6차 특허분쟁 대응전략 지원사업** [1][5]\n- 지원대상: 중소기업\n- 접수기간: 2026-08-03 ~ 2026-08-21\n- 지원금액: 3억원\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 5250.729100080207,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          1,
+          5
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q08",
+        "type": "on_topic",
+        "question": "우리 회사 핵심 기술이 유출될까 걱정돼요. 기술 보호 관련 지원 알려줘",
+        "final_status": "ok",
+        "raw_answer": "**중소기업 기술보호 지원사업** [1][2]\n- 지원대상: 중소기업\n- 접수기간: 추후 공지\n- 지원금액: 5만원\n\n**중소기업 기술보호 지원사업** [1][2]\n- 지원대상: 중소기업\n- 접수기간: 추후 공지\n- 지원금액: 5만원\n\n**영업비밀ㆍ기술 보호 컨설팅 모집 공고** [3]\n- 지원대상: 중소기업\n- 접수기간: 예산 소진시까지\n- 지원금액: 명시 없음\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 7119.441400049254,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          1,
+          2,
+          3
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q09",
+        "type": "on_topic",
+        "question": "대학생 인턴을 뽑으면 회사에 지원금이 나오는 사업이 있나요?",
+        "final_status": "no_evidence",
+        "raw_answer": "제공된 공고 자료에서 질문에 해당하는 지원사업을 찾지 못했습니다.\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 3756.2098000198603,
+        "generated": true,
+        "self_declared_no_evidence": true,
+        "cited": [],
+        "invalid_citations": [],
+        "has_valid_citation": false,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q10",
+        "type": "on_topic",
+        "question": "외국인 전문인력을 채용하려고 하는데 비자 발급 추천을 받을 수 있나요",
+        "final_status": "ok",
+        "raw_answer": "**외국전문인력(E-7-1) 고용추천 지원사업** [3][4]\n- 지원대상: 중소기업\n- 접수기간: 상시 접수\n- 지원금액: 3,112만원\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 4977.522300090641,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          3,
+          4
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q11",
+        "type": "on_topic",
+        "question": "직원이 육아휴직을 쓰면 회사가 받을 수 있는 지원금 있어?",
+        "final_status": "ok",
+        "raw_answer": "**육아휴직 기업지원금** [3][4]\n- 지원대상: 중소기업\n- 접수기간: 2026-03-11 ~ 2026-12-31\n- 지원금액: 30만원\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 4904.2891000863165,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          3,
+          4
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q12",
+        "type": "on_topic",
+        "question": "50대 경력직을 채용하려는 서울 중소기업인데 인건비 지원 사업 있나요?",
+        "final_status": "ok",
+        "raw_answer": "**2026년 중장년 경력 인재 지원(채용형) 참여기업 모집 공고** [1]\n- 지원대상: 중소기업\n- 접수기간: 예산 소진시까지\n- 지원금액: 300만원\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 5099.254600005224,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          1
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q13",
+        "type": "on_topic",
+        "question": "공장 작업환경 안전시설을 개선하려는데 비용 지원 받을 수 있을까요",
+        "final_status": "ok",
+        "raw_answer": "**안전일터 조성지원 사업** [2][3]\n- 지원대상: 중소기업 [2][3]\n- 접수기간: 세부사업별 상이 [2][3]\n- 지원금액: 50억원 [2][3]\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 4998.881799867377,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          2,
+          3
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q14",
+        "type": "on_topic",
+        "question": "서울에 있는 중소기업인데 운영자금 저리 대출 받을 수 있는 곳 알려줘",
+        "final_status": "ok",
+        "raw_answer": "**성북구 2026년 하반기 중소기업육성기금 융자지원 계획** [3]\n- 지원대상: 중소기업\n- 접수기간: 2026-08-18 ~ 2026-09-04\n- 지원금액: 3천만원\n\n**2026년 중소기업육성자금 융자지원 계획** [4]\n- 지원대상: 중소기업\n- 접수기간: 예산 소진시까지\n- 지원금액: 명시 없음\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 7031.969500007108,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          3,
+          4
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q15",
+        "type": "on_topic",
+        "question": "사회적기업도 받을 수 있는 대출이나 이자 지원이 있나요?",
+        "final_status": "ok",
+        "raw_answer": "**사회적기업 이차보전 지원사업** [1][2]\n- 지원대상: 사회적기업\n- 접수기간: 예산 소진시까지\n- 지원금액: 기업당 최대 2억원, SVI 탁월·우수 기업 최대 3억원\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 5194.270799867809,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          1,
+          2
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q16",
+        "type": "on_topic",
+        "question": "제조 공장에 스마트공장 시스템을 도입하고 싶어요",
+        "final_status": "ok",
+        "raw_answer": "**스마트 제조혁신 지원사업** [1][3]\n- 지원대상: 제조업 [1][3]\n- 접수기간: 세부사업별 상이 [1][3]\n- 지원금액: 2억원 [1][3]\n\n**지역특화형 스마트공장** [1][3]\n- 지원대상: 지역특화형 사업 참여 지자체 소재 제조기업 [1][3]\n- 접수기간: 지자체별로 개별 사업 공고 예정 [1][3]\n- 지원금액: 1억원 내외 [1][3]\n\n**레전드50+(지역특화 프로젝트) 스마트공장** [3]\n- 지원대상: 지역별 ‘지역특화 프로젝트 레전드50+’에 선정된 기업 [3]\n- 접수기간: 세부사업별 상이 [3]\n- 지원금액: 최대 5억원 [3]\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 9196.01560011506,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          1,
+          3
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q17",
+        "type": "on_topic",
+        "question": "기업부설연구소를 새로 설립하려고 하는데 도움받을 수 있는 사업",
+        "final_status": "ok",
+        "raw_answer": "**연구조직(기업부설연구소 등) 설립 및 기술ㆍ경영혁신 인증 지원사업** [2]\n- 지원대상: 중소기업\n- 접수기간: 세부사업별 상이\n- 지원금액: 40만원\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 4860.04319996573,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          2
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q18",
+        "type": "on_topic",
+        "question": "로봇 기술 연구개발 과제 지원 공고 있어?",
+        "final_status": "ok",
+        "raw_answer": "**2026년 2차 로봇산업기술개발사업 신규지원 대상과제 공고** [1]\n- 지원대상: 중소기업\n- 접수기간: 2026-08-21 ~ 2026-09-11\n- 지원금액: 100억원\n\n**2026년 산업혁신기반구축사업 휴머노이드 로봇 안전인증센터 구축 사업 휴머노이드 로봇시험 및 기술지원 수혜기업 모집 공고** [3]\n- 지원대상: 중소기업\n- 접수기간: 2026-07-08 ~ 2026-09-30\n- 지원금액: 500만원\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 8199.74229997024,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          1,
+          3
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q19",
+        "type": "on_topic",
+        "question": "장애인이 창업하려고 하는데 지원해주는 프로그램 있나요",
+        "final_status": "ok",
+        "raw_answer": "**장애인 창업 컨설팅지원 사업** [1]\n- 지원대상: 장애인기업\n- 접수기간: 예산 소진시까지\n- 지원금액: 명시 없음\n\n**2026년 3차 장애인 창업사업화 지원사업** [2]\n- 지원대상: 장애인기업\n- 접수기간: 2026-08-03 ~ 2026-08-24\n- 지원금액: 2,000만원\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 6681.061600102112,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          1,
+          2
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q20",
+        "type": "on_topic",
+        "question": "우리 제품을 조달청 벤처나라에 등록해서 공공기관에 팔고 싶어요",
+        "final_status": "ok",
+        "raw_answer": "**벤처나라제품 발굴 및 추천 지원 공고** [4]\n- 지원대상: 창업벤처\n- 접수기간: 2026-06-24 ~ 2026-08-28\n- 지원금액: 1천만원\n\n**2026년 물산업 벤처ㆍ창업기업 공공조달 진출 지원을 위한 벤처나라제품 발굴 및 추천 지원 공고** [4]\n- 지원대상: 창업벤처\n- 접수기간: 2026-06-24 ~ 2026-08-28\n- 지원금액: 1천만원\n\n**2026년 8차 정보보호 인증제품 조달청 벤처나라 추천기업 모집 공고(8월 추천)** [5]\n- 지원대상: 창업벤처\n- 접수기간: 2026-08-03 ~ 2026-08-21\n- 지원금액: 1천만원\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 10285.644999938086,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          4,
+          5
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q21",
+        "type": "on_topic",
+        "question": "팁스(TIPS) 프로그램으로 투자 연계 지원을 받고 싶은 스타트업입니다",
+        "final_status": "ok",
+        "raw_answer": "**팁스(TIPS) 창업기업 지원사업** [1]\n- 지원대상: 중소기업\n- 접수기간: 추후 공지\n- 지원금액: 5억원\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 4617.749999975786,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          1
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q22",
+        "type": "on_topic",
+        "question": "아직 사업자 등록 전인 예비창업자인데 사업화 자금 받을 수 있나요?",
+        "final_status": "ok",
+        "raw_answer": "**2026년 스타트업 법률지원사업** [1]\n- 지원대상: 예비창업자 [1]\n- 접수기간: 예산 소진시까지 [1]\n- 지원금액: 300만원 [1]\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 5038.53219980374,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          1
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q23",
+        "type": "on_topic",
+        "question": "스타트업 창업 경진대회에 나가보고 싶어요. 모집 중인 대회 있어?",
+        "final_status": "ok",
+        "raw_answer": "**2026년 H-스타트업 창업경진대회** [1]\n- 지원대상: 창업벤처\n- 접수기간: 2026-08-20 ~ 2026-09-07\n- 지원금액: 800만원\n\n**2026년 GovTech 창업 경진대회** [3]\n- 지원대상: 창업벤처\n- 접수기간: 2026-08-20 ~ 2026-09-21\n- 지원금액: 1,500만원\n\n**2026년 초기창업패키지 로켓십 IR 경진대회(AI·빅데이터)** [5]\n- 지원대상: 창업벤처\n- 접수기간: 2026-08-10 ~ 2026-08-21\n- 지원금액: 1억원\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 9827.862699981779,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          1,
+          3,
+          5
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q24",
+        "type": "on_topic",
+        "question": "해킹이 걱정되는데 중소기업 정보보호 솔루션 도입 지원 받을 수 있을까요",
+        "final_status": "ok",
+        "raw_answer": "**2026년 ICT 중소기업 정보보호 지원 사업** [1]\n- 지원대상: 중소기업\n- 접수기간: 예산 소진시까지\n- 지원금액: 480만원\n\n**2026년 중소기업 정보보호 지원사업** [2]\n- 지원대상: 중소기업\n- 접수기간: 2026-06-30 ~ 2026-11-30\n- 지원금액: 480만원\n\n**2026년 중소기업 정보보호 특화지원사업** [3]\n- 지원대상: 중소기업\n- 접수기간: 예산 소진시까지\n- 지원금액: 550만원\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 7674.729899968952,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          1,
+          2,
+          3
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q25",
+        "type": "on_topic",
+        "question": "중소기업 ESG 경영 도입 컨설팅 지원사업 알려주세요",
+        "final_status": "ok",
+        "raw_answer": "**2026년 중소기업 ESG 경영 도입 및 국제표준 인증 취득 지원사업** [3][5]\n- 지원대상: 농식품 R&D 수행, 신기술·녹색인증 획득 및 혁신제품 지정 기업 등 농림식품 관련 산업 종사 중소기업 [3][5]\n- 접수기간: 2026-08-06 ~ 2026-08-21 [3][5]\n- 지원금액: 명시 없음 [3][5]\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 6686.5720001515,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          3,
+          5
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q26",
+        "type": "on_topic",
+        "question": "회사를 다른 사람에게 넘기려고 하는데 M&A나 기업승계 지원이 있나요",
+        "final_status": "ok",
+        "raw_answer": "**기업승계 M&A 활성화를 위한 컨설팅 지원사업** [1][2][3]\n- 지원대상: 중소기업\n- 접수기간: 예산 소진시까지\n- 지원금액: 70만원\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 4666.023599915206,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          1,
+          2,
+          3
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "Q27",
+        "type": "on_topic",
+        "question": "1인 자영업자도 고용보험료 지원받을 수 있나요?",
+        "final_status": "ok",
+        "raw_answer": "**24. 소상공인 고용보험료 지원사업** [3][5]\n- 지원대상: 「고용보험 및 산업재해보상보험의 보험료징수 등에 관한 법률」제49조의2에 따른 ‘자영업자 고용보험’에 가입한 소상공인\n- 접수기간: '26.3월~ '25.12.30. , '26.1.2일~ '26.1월~ (보험료 납부 약2개월 후)\n- 지원내용: 납부한 월 고용보험료의 50～80%를 최대 5년간 지원\n\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 7844.636800000444,
+        "generated": true,
+        "self_declared_no_evidence": false,
+        "cited": [
+          3,
+          5
+        ],
+        "invalid_citations": [],
+        "has_valid_citation": true,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "O01",
+        "type": "off_topic",
+        "question": "주말에 서울에서 가볼 만한 전시회 추천해줘",
+        "final_status": "no_evidence",
+        "raw_answer": null,
+        "latency_ms": 64.69250004738569,
+        "generated": false
+      },
+      {
+        "id": "O02",
+        "type": "off_topic",
+        "question": "아파트 청약 1순위 조건이 뭐야?",
+        "final_status": "no_evidence",
+        "raw_answer": "제공된 공고 자료에서 질문에 해당하는 지원사업을 찾지 못했습니다.\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 4157.086099963635,
+        "generated": true,
+        "self_declared_no_evidence": true,
+        "cited": [],
+        "invalid_citations": [],
+        "has_valid_citation": false,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "O03",
+        "type": "off_topic",
+        "question": "운전면허 갱신은 어디서 하나요?",
+        "final_status": "no_evidence",
+        "raw_answer": null,
+        "latency_ms": 77.29690009728074,
+        "generated": false
+      },
+      {
+        "id": "O04",
+        "type": "off_topic",
+        "question": "비트코인 앞으로 오를까?",
+        "final_status": "no_evidence",
+        "raw_answer": null,
+        "latency_ms": 39.89730007015169,
+        "generated": false
+      },
+      {
+        "id": "O05",
+        "type": "off_topic",
+        "question": "개인 주택담보대출 금리 비교해줘",
+        "final_status": "no_evidence",
+        "raw_answer": "제공된 공고 자료에서 질문에 해당하는 지원사업을 찾지 못했습니다.\n정확한 내용은 원문 공고를 확인하세요.",
+        "latency_ms": 4077.761499909684,
+        "generated": true,
+        "self_declared_no_evidence": true,
+        "cited": [],
+        "invalid_citations": [],
+        "has_valid_citation": false,
+        "unsupported_numbers": []
+      },
+      {
+        "id": "O06",
+        "type": "off_topic",
+        "question": "감기 빨리 낫는 방법 알려줘",
+        "final_status": "no_evidence",
+        "raw_answer": null,
+        "latency_ms": 76.88820012845099,
+        "generated": false
+      }
+    ]
   }
 }
