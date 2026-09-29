@@ -2,8 +2,10 @@
 __pycache__/
 *.pyc
 .env
-.env.example
 .idea/
-data/raw/*.pdf
+data/raw/
+data/processed/
 *.log
 확인용/
+# SQLite 대화 로그 (API 서버 실행 시 data/chat_log.db로 자동 생성되는 로컬 데이터 - WBS 6.2)
+*.db
