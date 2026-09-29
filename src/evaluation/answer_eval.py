@@ -38,7 +38,7 @@ from context_builder import build_context  # noqa: E402
 from guardrail import KNN_RELEVANCE_THRESHOLD  # noqa: E402
 from hybrid_search import hybrid_search  # noqa: E402
 from llm_client import LLM_MODEL, LLM_PROVIDER, get_llm_client  # noqa: E402
-from metrics import citation_stats, mean, unsupported_numbers  # noqa: E402
+from metrics import citation_stats, has_placeholder, mean, unsupported_numbers  # noqa: E402
 from pipeline import answer_question  # noqa: E402
 from prompt_template import NO_EVIDENCE_MESSAGE  # noqa: E402
 from query_slots import extract_slots, fetch_candidate_values  # noqa: E402
@@ -122,6 +122,7 @@ def evaluate_answers(queries: list[dict], client, candidates: dict, llm) -> dict
                 "invalid_citations": stats["invalid"],
                 "has_valid_citation": stats["has_valid_citation"],
                 "unsupported_numbers": unsupported_numbers(raw, cited_texts) if stats["cited"] else [],
+                "placeholder_copied": has_placeholder(raw),
             })
         per_query.append(record)
 
@@ -137,6 +138,8 @@ def evaluate_answers(queries: list[dict], client, candidates: dict, llm) -> dict
             "citation_rate": mean([1.0 if r["has_valid_citation"] else 0.0 for r in answered]),
             "invalid_citation_answer_rate": mean([1.0 if r["invalid_citations"] else 0.0 for r in answered]),
             "hallucination_proxy_rate": mean([1.0 if r["unsupported_numbers"] else 0.0 for r in answered]),
+            # 형식 틀을 베낀 답변("OO 지원사업") - 인용 번호는 있어서 인용률로는 안 잡히는 품질 문제 (metrics._PLACEHOLDER 주석)
+            "placeholder_copy_rate": mean([1.0 if r.get("placeholder_copied") else 0.0 for r in answered]),
             "off_topic_correct_refusal": mean([1.0 if r["final_status"] == "no_evidence" else 0.0 for r in off_topic]),
             "final_status_counts": {s: sum(r["final_status"] == s for r in per_query)
                                     for s in sorted({r["final_status"] for r in per_query})},
@@ -177,6 +180,7 @@ def print_report(records: list[dict], table: list[dict], answers: dict) -> None:
         print(f"- 출처 인용률: {s['citation_rate']:.1%} (목표 95% 이상)")
         print(f"- 없는 번호 인용한 답변: {s['invalid_citation_answer_rate']:.1%}")
         print(f"- 근거에 없는 수치 포함 답변(hallucination 대리): {s['hallucination_proxy_rate']:.1%} (목표 5% 이하)")
+        print(f"- 형식 틀(OO, <...>)을 그대로 베낀 답변: {s.get('placeholder_copy_rate', 0):.1%}")
         print(f"- 무관 질의 올바른 거절: {s['off_topic_correct_refusal']:.1%} / 최종 상태 분포 {s['final_status_counts']}")
         print(f"- 응답 시간(LLM 포함): 평균 {s['latency_ms_mean_with_llm'] / 1000:.2f}초 / p95 {s['latency_ms_p95_with_llm'] / 1000:.2f}초")
 

@@ -85,6 +85,16 @@ def citation_stats(answer: str, num_sources: int) -> dict:
     return {"cited": valid, "invalid": invalid, "has_valid_citation": bool(valid)}
 
 
+# 프롬프트의 형식 틀("<근거 문서 제목의 사업명>")이나 예전 예시("OO 지원사업")를 실제 내용으로 바꾸지 않고 베낀 흔적.
+# 2026-09-29 로컬 7B 모델이 "**OO 지원사업** [1]"을 그대로 출력한 사례에서 추가 - 인용 번호는 있어서 인용률로는 안 잡힘.
+_PLACEHOLDER = re.compile(r"\bOO\b|OO\s*(?:지원)?사업|<[^<>\n]{1,30}>|〈[^〈〉\n]{1,30}〉")
+
+
+def has_placeholder(answer: str) -> bool:
+    """답변에 자리표시자(OO, <...>)가 그대로 남아 있으면 True."""
+    return bool(_PLACEHOLDER.search(answer or ""))
+
+
 def _normalize(text: str) -> str:
     return re.sub(r"[\s,]", "", text)
 

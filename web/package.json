@@ -1,0 +1,5 @@
+{
+  "//": "web/의 .js는 브라우저용 ES 모듈 - Node 테스트(tests/web_format.test.mjs)가 import할 때 모듈로 읽게 함",
+  "type": "module",
+  "private": true
+}

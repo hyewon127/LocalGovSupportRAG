@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>지원사업 도우미</title>
+  <meta name="description" content="지자체·중앙부처 지원사업 공고를 근거로 답하는 RAG 챗봇">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f5bd3'/%3E%3Cpath d='M8 13l8-5 8 5M10 13v9M16 13v9M22 13v9M7 24h18' stroke='white' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 화면 구성 (화면정의서 SCR-01 메인 채팅 / SCR-02 상세를 챗봇 형태로 재구성)
+       헤더(서비스명·상태) / 대화창(말풍선·출처 카드) / 입력창(필터 칩·전송) + 상세 패널·필터 패널(겹쳐 뜨는 창) -->
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="avatar avatar-bot" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 10l8-5 8 5M6 10v8M12 10v8M18 10v8M3 20h18"/></svg>
+        </div>
+        <div class="brand-text">
+          <h1>지원사업 도우미</h1>
+          <p id="service-meta">기업마당 공고 기반 · 서울</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <span id="status" class="status" data-state="loading" title="상태 확인 중">
+          <span class="status-dot"></span><span id="status-text">연결 중</span>
+        </span>
+        <button type="button" id="filter-button" class="icon-button" aria-label="검색 필터" title="검색 필터">
+          <svg viewBox="0 0 24 24"><path d="M4 5h16l-6 8v5l-4 2v-7z"/></svg>
+          <span id="filter-count" class="badge" hidden>0</span>
+        </button>
+        <button type="button" id="new-chat-button" class="icon-button" aria-label="새 대화" title="새 대화">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main id="messages" class="messages" aria-live="polite" aria-label="대화 내용"></main>
+
+    <footer class="composer">
+      <div id="active-filters" class="active-filters" hidden></div>
+      <form id="chat-form" class="input-row" autocomplete="off">
+        <textarea id="question" rows="1" maxlength="500" placeholder="궁금한 지원사업을 물어보세요" aria-label="질문 입력"></textarea>
+        <button type="submit" id="send-button" class="send-button" aria-label="보내기" disabled>
+          <svg viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2-7z"/></svg>
+        </button>
+      </form>
+      <p class="composer-hint">답변은 공고 원문에서 찾은 내용만 <span class="cite cite-static">1</span> 번호로 출처를 달아 알려드려요.</p>
+    </footer>
+  </div>
+
+  <!-- 겹쳐 뜨는 창 공통 배경. 누르면 열린 창을 닫습니다. -->
+  <div id="scrim" class="scrim" hidden></div>
+
+  <!-- SCR-02 지원사업 상세: 데스크톱은 오른쪽 패널, 모바일은 아래에서 올라오는 시트 -->
+  <aside id="detail-panel" class="sheet detail" role="dialog" aria-modal="true" aria-labelledby="detail-title" hidden>
+    <div class="sheet-header">
+      <h2 id="detail-title">공고 상세</h2>
+      <button type="button" class="icon-button" data-close aria-label="닫기">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div id="detail-body" class="sheet-body"></div>
+  </aside>
+
+  <!-- SCR-01 ② 검색 필터 (비워두면 질문 문장에서 조건을 자동으로 찾음) -->
+  <aside id="filter-panel" class="sheet filter" role="dialog" aria-modal="true" aria-labelledby="filter-title" hidden>
+    <div class="sheet-header">
+      <h2 id="filter-title">검색 필터</h2>
+      <button type="button" class="icon-button" data-close aria-label="닫기">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="sheet-body">
+      <p class="muted">비워두면 질문 문장에서 조건을 자동으로 찾아요. 직접 고르면 그 값이 우선합니다.</p>
+      <label class="field">지역
+        <select id="filter-region"><option value="">전체</option></select>
+      </label>
+      <label class="field">업종·대상
+        <select id="filter-target"><option value="">전체</option></select>
+      </label>
+      <fieldset class="field">
+        <legend>관심분야 <span class="muted">(여러 개 선택 가능)</span></legend>
+        <div id="filter-categories" class="chip-group"></div>
+      </fieldset>
+      <div class="sheet-actions">
+        <button type="button" id="filter-reset" class="button secondary">초기화</button>
+        <button type="button" id="filter-apply" class="button primary">적용</button>
+      </div>
+    </div>
+  </aside>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -43,6 +43,7 @@ SUITES = [
     ("test_answer_eval.py", "opensearch", False),
     ("test_llm_provider.py", "none", False),
     ("test_ui_backend_integration.py", "backend", False),
+    ("test_web_ui.py", "backend", False),
 ]
 
 

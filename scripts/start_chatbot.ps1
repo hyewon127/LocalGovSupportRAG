@@ -1,12 +1,16 @@
 ﻿# 챗봇 한 번에 실행하기 (WBS 9 데모용)
 #
-# 순서: OpenSearch -> FastAPI 백엔드 -> Streamlit 화면 -> 브라우저 열기
+# 순서: OpenSearch -> (로컬 LLM 준비) -> FastAPI 백엔드(챗봇 웹 화면 포함) -> 브라우저 열기
+# 챗봇 화면은 백엔드가 http://127.0.0.1:8000/ 에서 같이 서빙합니다(web/). 예전 Streamlit 화면(ui/app.py)은
+# 관리·디버그용으로 남겨뒀고, -Streamlit을 붙이면 같이 띄웁니다:  scripts\start_chatbot.ps1 -Streamlit
 # 이미 떠 있는 서비스는 건너뜁니다. 그래서 여러 번 실행해도 서버가 중복으로 뜨지 않습니다.
 # 끌 때는 scripts\stop_chatbot.bat (또는 stop_chatbot.ps1)을 실행하세요.
 #
 # OpenSearch 설치 위치는 PC마다 다르므로 환경변수 OPENSEARCH_HOME으로 바꿀 수 있습니다.
 # (기본값은 개발 PC의 zip 설치 경로)
 # 이 파일은 UTF-8 BOM으로 저장해야 합니다 - Windows PowerShell 5.1은 BOM이 없으면 한글을 ANSI(cp949)로 읽어 깨뜨림.
+
+param([switch]$Streamlit)
 
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
@@ -83,11 +87,14 @@ if (Test-Url "http://127.0.0.1:8000/health") {
     Wait-Until "백엔드" { Test-Url "http://127.0.0.1:8000/health" } 120
 }
 
-# 3) 화면
-Write-Host "[3/3] 화면 (Streamlit :8501)"
-if (Test-Url "http://127.0.0.1:8501/_stcore/health") {
+# 3) Streamlit 화면 (선택)
+if (-not $Streamlit) {
+    Write-Host "[3/3] Streamlit 화면 - 건너뜀 (필요하면 -Streamlit)"
+} elseif (Test-Url "http://127.0.0.1:8501/_stcore/health") {
+    Write-Host "[3/3] Streamlit 화면 (:8501)"
     Write-Host "  이미 실행 중"
 } else {
+    Write-Host "[3/3] Streamlit 화면 (:8501)"
     Start-PythonServer "ui" @("-m", "streamlit", "run", "ui/app.py", "--server.headless", "true", "--server.port", "8501")
     Wait-Until "화면" { Test-Url "http://127.0.0.1:8501/_stcore/health" } 60
 }
@@ -101,5 +108,6 @@ if ($health.llm_enabled) {
 } else {
     Write-Host "LLM: 비활성 - 답변 문장 없이 관련 공고 목록만 안내합니다. (Ollama 모델 또는 .env의 API 키 필요)"
 }
-Write-Host "화면: http://127.0.0.1:8501   API 문서: http://127.0.0.1:8000/docs"
-Start-Process "http://127.0.0.1:8501"
+Write-Host "챗봇: http://127.0.0.1:8000   API 문서: http://127.0.0.1:8000/docs"
+if ($Streamlit) { Write-Host "Streamlit(관리용): http://127.0.0.1:8501" }
+Start-Process "http://127.0.0.1:8000"

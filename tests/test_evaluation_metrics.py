@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src" / "evaluat
 from metrics import (  # noqa: E402
     citation_stats,
     first_relevant_rank,
+    has_placeholder,
     hit_at_k,
     mean,
     recall_at_k,
@@ -68,6 +69,12 @@ def main() -> int:
     context_mixed = ["지원한도: 업체당 6백만원, 총 3천만원"]
     check("수치: '6백만원'·'3천만원' 표기도 근거와 대조", unsupported_numbers("6백만원씩 총 3천만원", context_mixed), [])
     check("수치: 근거에 없는 '9백만원'은 검출", unsupported_numbers("최대 9백만원 지원", context_mixed), ["9백만원"])
+
+    # 형식 틀 베끼기 (2026-09-29 실제 사례: "**OO 지원사업** [1]")
+    check("자리표시자: 'OO 지원사업' 베낌 감지", has_placeholder("**OO 지원사업** [1] - 지원대상: 소상공인 [1]"), True)
+    check("자리표시자: '<...>' 틀 베낌 감지", has_placeholder("**<근거 문서 제목의 사업명>** [1]"), True)
+    check("자리표시자: 정상 답변은 통과", has_placeholder("**2026년 소상공인 온라인판로 지원사업** [1]"), False)
+    check("자리표시자: 'OOO기업' 같은 단어 일부는 오탐 안 함", has_placeholder("GOOD 기업 [1]"), False)
 
     passed = sum(ok for _, ok in results)
     print(f"\n{passed}/{len(results)} passed")

@@ -24,15 +24,18 @@
 #
 # [CORS 미들웨어를 안 넣은 이유] Streamlit(WBS 6.4)은 브라우저가 아니라 Streamlit 서버(파이썬)가
 #   requests로 이 API를 부릅니다. CORS는 "브라우저의 자바스크립트"가 다른 출처를 호출할 때만 걸리는 제한이라
-#   지금 구조에서는 필요 없습니다. 나중에 React 같은 브라우저 프론트엔드를 붙이면 그때 추가해야 합니다.
+#   지금 구조에서는 필요 없습니다. 브라우저용 웹 화면(web/, 2026-09-29)은 이 서버가 같은 주소에서 직접 서빙하므로
+#   역시 필요 없습니다(파일 맨 끝 참고). 화면을 다른 주소(예: 별도 개발 서버)에서 띄울 때만 추가하면 됩니다.
 
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import sqlite3
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from opensearchpy.exceptions import ConnectionError as OpenSearchConnectionError
 from opensearchpy.exceptions import NotFoundError as OpenSearchNotFoundError
 from opensearchpy.exceptions import TransportError as OpenSearchTransportError
@@ -185,3 +188,14 @@ def health(res: AppResources = Depends(get_resources)):
         llm_provider=LLM_PROVIDER,
         llm_model=LLM_MODEL,
     )
+
+
+# ── 챗봇 웹 화면 (WBS 9) ─────────────────────────────────────────────
+# web/ 폴더(index.html, app.js, style.css)를 "/"에서 그대로 서빙합니다. 화면과 API가 같은 주소(127.0.0.1:8000)라서
+# 브라우저가 /chat을 불러도 "다른 출처" 요청이 아니므로 CORS 설정이 필요 없습니다 (위 [CORS 미들웨어를 안 넣은 이유]).
+# 반드시 파일 맨 끝에 두는 이유: "/"에 붙인 정적 파일 서빙은 모든 주소를 받을 수 있어서, API 경로(/chat, /health...)보다
+#   먼저 등록되면 API 요청을 가로챕니다. FastAPI는 등록 순서대로 경로를 찾으므로 API를 전부 등록한 뒤에 붙여야 합니다.
+# html=True: "/"로 들어오면 index.html을 돌려줌.
+WEB_DIR = Path(__file__).resolve().parents[2] / "web"
+if WEB_DIR.is_dir():  # web/ 폴더가 없는 배포(API만)에서도 서버는 뜨게
+    app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")
