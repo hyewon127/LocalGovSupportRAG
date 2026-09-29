@@ -36,7 +36,7 @@ from pathlib import Path
 from openai import OpenAI
 
 # LLM 접속 설정(업체/모델명)은 llm_client.py 한 곳에서 관리합니다 (분석모델 정의서 2.4 결정: Upstage).
-from llm_client import LLM_MODEL, USE_DEFAULT_LLM, resolve_llm_client
+from llm_client import LLM_MODEL, SLOT_LLM_ENABLED, USE_DEFAULT_LLM, resolve_llm_client
 
 # ── src/indexing/config.py 재사용을 위한 경로 설정 ───────────────────
 # src/indexing/*.py들은 전부 "from config import ..."라는 같은 폴더 기준 import를 쓰는데,
@@ -175,7 +175,13 @@ def _extract_slots_llm(query: str, client: OpenAI, region_values: list[str], cat
         tool_choice="required",
         temperature=0,  # 슬롯 추출은 "정답이 하나"인 분류 작업이라 답변 생성(0.2)보다 더 결정적으로 둠
     )
-    tool_call = response.choices[0].message.tool_calls[0]
+    tool_calls = response.choices[0].message.tool_calls
+    if not tool_calls:
+        # [2026-09-29] 로컬 Ollama(qwen2.5)는 tool_choice="required"를 지키지 않고 가끔 일반 문장으로 답합니다.
+        # 그대로 [0]을 꺼내면 "'NoneType' object is not subscriptable"처럼 원인을 알 수 없는 메시지가 나와서 직접 알려줌.
+        # (호출하는 extract_slots()가 이 예외를 받아 필터 없이 검색을 계속함)
+        raise ValueError("LLM이 도구 호출 없이 일반 텍스트로 응답함")
+    tool_call = tool_calls[0]
     raw = json.loads(tool_call.function.arguments)  # "이 인자로 호출하세요"라는 JSON 문자열 -> dict로 변환
     raw["region"] = raw.get("region") or None  # 빈 문자열은 "없음"과 같은 의미이므로 None으로 통일
     return raw
@@ -207,6 +213,12 @@ def extract_slots(
     if slots["region"] or slots["categories"] or slots["target_keywords"]:
         return slots
 
+    # 공급자가 슬롯 추출에 부적합하면(로컬 Ollama - llm_client.py의 slot_llm 주석) 실제 LLM은 부르지 않음.
+    # "인자 생략"만 막으면 안 되는 이유: pipeline.py와 평가 스크립트는 만들어 둔 실제 클라이언트를 직접 넘기므로
+    # (처음에 생략한 경우만 막았다가 평가 수치가 전혀 안 바뀌어서 발견), 실제 OpenAI 클라이언트 객체도 막음.
+    # 테스트의 가짜 LLM(OpenAI 객체가 아님)은 슬롯 추출 코드 경로를 검사하려는 의도이므로 그대로 통과시킴.
+    if not SLOT_LLM_ENABLED and (llm_client is USE_DEFAULT_LLM or isinstance(llm_client, OpenAI)):
+        return slots
     client = resolve_llm_client(llm_client)
     if client is None:
         return slots  # LLM을 쓸 수 없으면 (정규식이 아무것도 못 찾은) 빈 결과라도 그대로 반환

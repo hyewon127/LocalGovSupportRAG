@@ -61,6 +61,19 @@ Wait-Until "OpenSearch" {
     catch { $false }
 } 180
 
+# 1.5) 로컬 LLM(Ollama) - 있으면 쓰고, 없어도 챗봇은 "공고 목록만 안내"로 동작하므로 실패해도 멈추지 않음.
+#   qwen2.5-rag:7b는 한 번에 읽는 양을 늘린 버전(ollama/Modelfile 주석). 원본만 받아둔 경우 여기서 만들어 줌
+#   (가중치 공유라 몇 초면 끝남). 백엔드가 뜰 때 모델을 고르므로 반드시 백엔드보다 먼저 해야 함.
+if (Get-Command ollama -ErrorAction SilentlyContinue) {
+    $models = (ollama list) -join "`n"
+    if ($models -notmatch "qwen2\.5-rag:7b" -and $models -match "qwen2\.5:7b") {
+        Write-Host "[LLM] qwen2.5-rag:7b 만드는 중 (ollama/Modelfile)"
+        ollama create qwen2.5-rag:7b -f (Join-Path $ProjectRoot "ollama\Modelfile") | Out-Null
+    } elseif ($models -notmatch "qwen2\.5") {
+        Write-Host "[LLM] Ollama 모델이 없습니다. 답변 생성을 쓰려면: ollama pull qwen2.5:7b"
+    }
+}
+
 # 2) 백엔드 - 임베딩 모델을 미리 올려두느라 준비까지 약 20초
 Write-Host "[2/3] 백엔드 (FastAPI :8000)"
 if (Test-Url "http://127.0.0.1:8000/health") {
@@ -86,7 +99,7 @@ Write-Host "준비 완료: 공고 청크 $($health.index_docs)개 색인됨"
 if ($health.llm_enabled) {
     Write-Host "LLM: 사용 가능 ($($health.llm_provider) / $($health.llm_model))"
 } else {
-    Write-Host "LLM: 비활성 - .env에 UPSTAGE_API_KEY가 없어서 답변 문장 없이 관련 공고 목록만 안내합니다."
+    Write-Host "LLM: 비활성 - 답변 문장 없이 관련 공고 목록만 안내합니다. (Ollama 모델 또는 .env의 API 키 필요)"
 }
 Write-Host "화면: http://127.0.0.1:8501   API 문서: http://127.0.0.1:8000/docs"
 Start-Process "http://127.0.0.1:8501"

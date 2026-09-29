@@ -161,18 +161,25 @@ def test_llm_client_settings() -> None:
     print("\n── LLM 클라이언트 타임아웃 설정 ──")
     import llm_client  # src/rag/llm_client.py (src.api import 시 경로가 잡힘)
 
-    env_name = llm_client._SPEC["api_key_env"]
+    # 네트워크 요청은 보내지 않음 - 클라이언트 객체 설정만 확인.
+    # Ollama는 키가 없는 대신 받아둔 모델이 있어야 클라이언트가 만들어지므로, 키/모델 중 필요한 쪽을 가짜 값으로 채움.
+    env_name = llm_client._SPEC["api_key_env"] or "LLM_MODEL"
     saved = os.environ.get(env_name)
-    os.environ[env_name] = "test-key-not-real"  # 네트워크 요청은 보내지 않음 - 클라이언트 객체 설정만 확인
+    saved_model = llm_client.LLM_MODEL
+    os.environ[env_name] = "test-key-not-real"
+    llm_client.LLM_MODEL = saved_model or "test-model"
     try:
         client = llm_client.get_llm_client()
-        check(f"타임아웃 {llm_client.LLM_TIMEOUT_SEC}초 (openai 기본 600초 아님)", client.timeout == llm_client.LLM_TIMEOUT_SEC,
-              client.timeout)
-        check(f"재시도 {llm_client.LLM_MAX_RETRIES}회 (기본 2회 아님)", client.max_retries == llm_client.LLM_MAX_RETRIES)
-        check("화면 타임아웃 > 백엔드 최악 대기(슬롯+답변 각각 timeout x (재시도+1))",
-              api_client.CHAT_TIMEOUT_SEC > 2 * llm_client.LLM_TIMEOUT_SEC * (llm_client.LLM_MAX_RETRIES + 1),
-              f"{api_client.CHAT_TIMEOUT_SEC}s")
+        check(f"[{llm_client.LLM_PROVIDER}] 타임아웃 {llm_client.LLM_TIMEOUT_SEC}초 (openai 기본 600초 아님)",
+              client.timeout == llm_client.LLM_TIMEOUT_SEC, client.timeout)
+        check(f"[{llm_client.LLM_PROVIDER}] 재시도 {llm_client.LLM_MAX_RETRIES}회 (기본 2회 아님)",
+              client.max_retries == llm_client.LLM_MAX_RETRIES)
+        # 지금 쓰는 공급자만이 아니라 모든 공급자 기준으로 검사 - .env만 바꿔도 공급자가 바뀌기 때문
+        worst = max(2 * spec["timeout_sec"] * (spec["max_retries"] + 1) for spec in llm_client._LLM_SPECS.values())
+        check(f"화면 타임아웃 > 백엔드 최악 대기(슬롯+답변 각각 timeout x (재시도+1), 모든 공급자 중 최대 {worst}초)",
+              api_client.CHAT_TIMEOUT_SEC > worst, f"{api_client.CHAT_TIMEOUT_SEC}s")
     finally:
+        llm_client.LLM_MODEL = saved_model
         if saved is None:
             os.environ.pop(env_name, None)
         else:
@@ -200,7 +207,8 @@ def test_llm_injection_rule(real: AppResources) -> None:
     # 버그는 ".env에 키가 있을 때"만 드러나므로 가짜 키로 그 상황을 만듭니다. 키가 없는 PC에서는 옛 코드도
     # get_llm_client()가 None을 돌려줘서 우연히 통과하기 때문에, 이게 없으면 테스트가 버그를 못 잡습니다.
     # (옛 코드 + 가짜 키 = 실제 Upstage로 요청 -> 401 -> llm_error가 나서 아래 첫 검사가 실패함)
-    env_name = llm_client._SPEC["api_key_env"]
+    # Ollama처럼 키가 없는 공급자는 키 이름이 None이라, 아무 영향 없는 변수 이름으로 대신함 (복원 코드를 같이 쓰려고)
+    env_name = llm_client._SPEC["api_key_env"] or "LLM_TEST_DUMMY"
     saved_key = os.environ.get(env_name)
     os.environ[env_name] = "test-key-not-real"
     llm_client.get_llm_client = must_not_be_called
@@ -211,11 +219,16 @@ def test_llm_injection_rule(real: AppResources) -> None:
         # 정규식으로 아무것도 못 잡는 문장 = 원래라면 LLM 폴백을 시도하는 경로
         slots = extract_slots("요식업 하는데 받을 수 있는 지원금 있나요", candidates=real.candidates, llm_client=None)
         check("extract_slots(llm_client=None) -> LLM 폴백 없이 정규식 결과", not calls and slots["categories"] == [], slots)
-        try:
+        if not llm_client.SLOT_LLM_ENABLED:
+            # 슬롯 추출에 LLM을 쓰지 않는 공급자(ollama/none - llm_client.py slot_llm 주석)는 클라이언트를 만들 이유가 없음
             extract_slots("요식업 하는데 받을 수 있는 지원금 있나요", candidates=real.candidates)
-            check("인자 생략 시에는 .env 설정대로 클라이언트를 만들려고 함", False, "get_llm_client 미호출")
-        except AssertionError:
-            check("인자 생략 시에는 .env 설정대로 클라이언트를 만들려고 함", len(calls) == 1)
+            check(f"인자 생략 + 슬롯 LLM 꺼진 공급자({llm_client.LLM_PROVIDER}) -> 클라이언트를 만들지 않음", not calls)
+        else:
+            try:
+                extract_slots("요식업 하는데 받을 수 있는 지원금 있나요", candidates=real.candidates)
+                check("인자 생략 시에는 .env 설정대로 클라이언트를 만들려고 함", False, "get_llm_client 미호출")
+            except AssertionError:
+                check("인자 생략 시에는 .env 설정대로 클라이언트를 만들려고 함", len(calls) == 1)
     finally:
         llm_client.get_llm_client = original
         if saved_key is None:

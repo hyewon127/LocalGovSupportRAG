@@ -78,7 +78,7 @@ def main() -> int:
     check("필터: 지역 선택지 = 백엔드 값", region_box.options == ["전체"] + filters["regions"], region_box.options)
     check("필터: 업종 선택지 = 백엔드 값", target_box.options == ["전체"] + filters["targets"])
     check("필터: 관심분야 선택지 = 백엔드 값", at.sidebar.multiselect[0].options == filters["categories"])
-    example = find_button(at, label="서울 소상공인 창업 자금 지원사업 알려줘")
+    example = find_button(at, label="서울 소상공인 온라인 판로 지원사업 알려줘")
     check("입력창: 추천 질문 버튼 표시", example is not None)
     check("입력창: 채팅 입력 활성화", at.chat_input and not at.chat_input[0].disabled)
 
@@ -90,7 +90,7 @@ def main() -> int:
     if expected_notice:
         check("상태 안내: LLM 키 없음 경고", any(expected_notice in w for w in texts(at.warning)), texts(at.warning))
     condition_caption = next((c for c in texts(at.caption) if c.startswith("🔎 검색 조건")), "")
-    check("검색 조건 캡션: 질문에서 추출한 슬롯 표시", "지역 서울" in condition_caption and "분야 창업" in condition_caption,
+    check("검색 조건 캡션: 질문에서 추출한 슬롯 표시", "지역 서울" in condition_caption and "대상 소상공인" in condition_caption,
           condition_caption)
     detail_buttons = [b for b in at.button if (b.key or "").startswith("detail_")]
     check("UI-02: 답변 카드(상세 보기 버튼) 1~5장", 1 <= len(detail_buttons) <= 5, len(detail_buttons))
@@ -153,7 +153,7 @@ def main() -> int:
     find_button(reloaded, label="🆕 새 대화 시작").click().run()
     check("새 대화: 대화창 비움", len(reloaded.chat_message) == 0)
     check("새 대화: URL의 session 제거", "session" not in dict(reloaded.query_params), dict(reloaded.query_params))
-    check("새 대화: 추천 질문 다시 표시", find_button(reloaded, label="서울 소상공인 창업 자금 지원사업 알려줘") is not None)
+    check("새 대화: 추천 질문 다시 표시", find_button(reloaded, label="서울 소상공인 온라인 판로 지원사업 알려줘") is not None)
 
     # ── 8. 근거 없는 질문 -> no_evidence 안내, 카드 없음 ───────────────
     reloaded.chat_input[0].set_value("오늘 날씨 어때").run()

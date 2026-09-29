@@ -160,4 +160,4 @@ class HealthResponse(BaseModel):
     index_docs: int | None
     llm_enabled: bool
     llm_provider: str
-    llm_model: str
+    llm_model: str | None  # LLM을 끈 경우(LLM_PROVIDER=none)나 Ollama에 받은 모델이 없으면 None
