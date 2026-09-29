@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- 레포 사본: claude.ai 게시본과 같은 내용. 로컬 브라우저에서도 다이어그램이 보이도록 mermaid를 불러옴(인터넷 필요) -->
+<title>RAG 챗봇 구현 노트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root {
+  --paper: #f5f7fa; --sheet: #ffffff; --ink: #1b2a4a; --ink-2: #4a5a78; --ink-3: #7c89a3; --line: #dfe4ec;
+  --accent: #2f5bd3; --accent-soft: #e6ecfb; --warn: #b7690e; --warn-soft: #fbf0e1; --good: #1e8a4f; --good-soft: #e3f4ea;
+  --bad: #c0392b; --code-bg: #eef1f6; --term: #6a4bc4; --term-soft: #efeafb;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #10151f; --sheet: #161d2a; --ink: #e6ebf5; --ink-2: #a9b5cc; --ink-3: #7c89a3; --line: #28324a;
+    --accent: #7b9cf2; --accent-soft: #1f2a47; --warn: #e3a04f; --warn-soft: #36280f; --good: #4cc185; --good-soft: #12301f;
+    --bad: #ef7a6d; --code-bg: #1d2638; --term: #b39cf5; --term-soft: #261f3d; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #10151f; --sheet: #161d2a; --ink: #e6ebf5; --ink-2: #a9b5cc; --ink-3: #7c89a3; --line: #28324a;
+  --accent: #7b9cf2; --accent-soft: #1f2a47; --warn: #e3a04f; --warn-soft: #36280f; --good: #4cc185; --good-soft: #12301f;
+  --bad: #ef7a6d; --code-bg: #1d2638; --term: #b39cf5; --term-soft: #261f3d; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.8 "IBM Plex Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; word-break: keep-all; overflow-wrap: anywhere; }
+.wrap { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 48px; max-width: 1200px; margin: 0 auto; padding: 40px 24px 96px; }
+nav.toc { position: sticky; top: calc(24px + env(safe-area-inset-top, 0px)); align-self: start; font-size: 14px; max-height: calc(100vh - 48px); overflow-y: auto; }
+nav.toc .part { margin: 14px 0 6px; font-size: 11.5px; letter-spacing: .08em; color: var(--ink-3); font-weight: 700; }
+nav.toc .part:first-child { margin-top: 0; }
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+nav.toc a { display: block; padding: 4px 10px; border-radius: 8px; color: var(--ink-2); text-decoration: none; line-height: 1.45; }
+nav.toc a:hover, nav.toc a:focus-visible { background: var(--accent-soft); color: var(--accent); outline: none; }
+main { min-width: 0; max-width: 820px; }
+header.hero { padding-bottom: 28px; border-bottom: 1px solid var(--line); }
+.eyebrow { font: 600 12px/1.4 "JetBrains Mono", monospace; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; }
+h1 { font-size: 36px; line-height: 1.3; margin: 10px 0 14px; text-wrap: balance; }
+.partbanner { margin: 80px 0 0; padding: 18px 22px; border-radius: 14px; background: var(--ink); color: var(--paper); }
+.partbanner b { display: block; font: 600 12px/1.5 "JetBrains Mono", monospace; letter-spacing: .1em; opacity: .75; }
+.partbanner span { font-size: 22px; font-weight: 700; }
+h2 { font-size: 25px; line-height: 1.35; margin: 56px 0 6px; text-wrap: balance; scroll-margin-top: 24px; }
+h3 { font-size: 19px; margin: 30px 0 6px; }
+p { margin: 10px 0; }
+.lede { font-size: 18px; color: var(--ink-2); max-width: 64ch; }
+.sub { color: var(--ink-2); margin-top: 0; }
+a { color: var(--accent); }
+code { font-family: "JetBrains Mono", Consolas, monospace; font-size: .86em; background: var(--code-bg); padding: 1px 6px; border-radius: 5px; }
+pre.code { background: var(--code-bg); padding: 14px 16px; border-radius: 10px; overflow-x: auto; font: 13.5px/1.6 "JetBrains Mono", Consolas, monospace; }
+/* 용어가 처음 나올 때: 이름 + 한 줄 뜻 */
+.term { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; align-items: baseline; background: var(--term-soft); border-radius: 12px; padding: 12px 16px; margin: 14px 0; }
+.term b { color: var(--term); font-size: 15px; white-space: nowrap; }
+.term span { font-size: 15px; }
+.term + .term { margin-top: -6px; }
+dfn { font-style: normal; font-weight: 600; color: var(--term); border-bottom: 1px dashed var(--term); }
+/* 쉽게 말하면 / 비유 / 주의 / 결과 상자 */
+.box { border-radius: 12px; padding: 14px 18px; margin: 16px 0; background: var(--accent-soft); }
+.box > strong:first-child { display: block; font-size: 13px; letter-spacing: .04em; margin-bottom: 2px; color: var(--accent); }
+.box.easy { background: var(--good-soft); } .box.easy > strong:first-child { color: var(--good); }
+.box.warn { background: var(--warn-soft); } .box.warn > strong:first-child { color: var(--warn); }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 24px 0 6px; }
+.stat { background: var(--sheet); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.stat b { display: block; font: 600 26px/1.2 "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 13px; color: var(--ink-2); line-height: 1.45; display: block; margin-top: 4px; }
+.figure { background: var(--sheet); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin: 18px 0; overflow-x: auto; }
+.figure svg { display: block; width: 100%; height: auto; min-width: 560px; }
+.figure svg text { font-family: "IBM Plex Sans KR", "Malgun Gothic", sans-serif; fill: var(--ink); }
+.figure .cap { font-size: 13.5px; color: var(--ink-2); margin: 10px 2px 0; }
+pre.mermaid { background: transparent; margin: 0; text-align: center; min-width: 560px; }
+.table { overflow-x: auto; margin: 16px 0; background: var(--sheet); border: 1px solid var(--line); border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.6; }
+th { font-size: 12.5px; color: var(--ink-3); font-weight: 600; background: var(--paper); }
+tr:last-child td { border-bottom: 0; }
+td.n { font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.steps { display: grid; gap: 10px; margin: 16px 0; counter-reset: step; }
+.steps div { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; background: var(--sheet); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
+.steps div::before { counter-increment: step; content: counter(step); display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff; font: 600 14px "JetBrains Mono", monospace; }
+.steps b { display: block; }
+.steps span { color: var(--ink-2); font-size: 15px; }
+.ts { background: var(--sheet); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; margin: 14px 0; display: grid; gap: 8px; }
+.ts h3 { margin: 0; font-size: 17px; }
+.ts dl { margin: 0; display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 6px 12px; font-size: 15px; }
+.ts dt { font: 600 12.5px/2 "IBM Plex Sans KR", sans-serif; color: var(--ink-3); }
+.ts dt.lesson { color: var(--warn); }
+.ts dd { margin: 0; }
+.tag { display: inline-block; font: 600 11px/1.8 "JetBrains Mono", monospace; padding: 0 8px; border-radius: 999px; background: var(--code-bg); color: var(--ink-2); vertical-align: 2px; margin-left: 6px; }
+details { background: var(--sheet); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; margin: 10px 0; }
+details summary { cursor: pointer; font-weight: 600; }
+details summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+.glossary h3 { margin-top: 24px; }
+.gl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.gl div { background: var(--sheet); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.gl b { display: block; color: var(--term); }
+.gl span { font-size: 14px; color: var(--ink-2); line-height: 1.6; display: block; }
+.gl i { font-style: normal; font-size: 13px; color: var(--ink-3); display: block; margin-top: 4px; }
+footer { margin-top: 72px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-3); }
+@media (max-width: 900px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); gap: 20px; padding: 24px 16px 72px; }
+  nav.toc { position: static; max-height: none; background: var(--sheet); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gl { grid-template-columns: minmax(0, 1fr); }
+  h1 { font-size: 29px; } h2 { font-size: 22px; margin-top: 44px; }
+  .term { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+<nav class="toc" aria-label="목차">
+  <p class="part">시작하기</p>
+  <ol><li><a href="#start">이 노트 읽는 법</a></li></ol>
+  <p class="part">1부 · RAG 기초</p>
+  <ol>
+    <li><a href="#b-llm">LLM은 무엇이고 왜 지어낼까</a></li>
+    <li><a href="#b-rag">RAG = 오픈북 시험</a></li>
+    <li><a href="#b-search">문서를 찾는 두 가지 방법</a></li>
+    <li><a href="#b-embed">임베딩: 문장을 지도 위 점으로</a></li>
+    <li><a href="#b-chunk">왜 문서를 잘게 쪼갤까</a></li>
+    <li><a href="#b-store">검색엔진과 색인</a></li>
+    <li><a href="#b-prompt">프롬프트와 가드레일</a></li>
+    <li><a href="#b-eval">잘 되는지 어떻게 알까</a></li>
+  </ol>
+  <p class="part">2부 · 이 프로젝트 따라가기</p>
+  <ol>
+    <li><a href="#p-arch">전체 구조</a></li>
+    <li><a href="#p-collect">수집과 전처리</a></li>
+    <li><a href="#p-index">색인</a></li>
+    <li><a href="#p-journey">질문 하나의 여정</a></li>
+    <li><a href="#p-hybrid">하이브리드 검색</a></li>
+    <li><a href="#p-guard">2단 가드레일</a></li>
+    <li><a href="#p-service">서비스와 화면</a></li>
+    <li><a href="#p-eval">평가 결과</a></li>
+    <li><a href="#p-llm">로컬 LLM 연결기</a></li>
+    <li><a href="#p-sync">자동 갱신</a></li>
+  </ol>
+  <p class="part">3부 · 문제 해결</p>
+  <ol><li><a href="#trouble">트러블슈팅 모음</a></li><li><a href="#limits">한계와 다음 단계</a></li></ol>
+  <p class="part">4부 · 복습</p>
+  <ol><li><a href="#terms">용어 사전</a></li><li><a href="#quiz">스스로 점검</a></li></ol>
+</nav>
+
+<main>
+<header class="hero" id="start">
+  <div class="eyebrow">LocalGovSupportRAG · 초급자용 학습 노트 · 2026-09-29</div>
+  <h1>RAG를 처음 배우는 사람을 위한<br>지원사업 챗봇 해설</h1>
+  <p class="lede">이 노트는 RAG를 전혀 모르는 상태에서 시작해, 이 프로젝트가 어떻게 동작하는지 이해하는 것을 목표로 합니다. 1부에서 기초 개념을 비유와 그림으로 익히고, 2부에서 실제 코드가 그 개념을 어떻게 구현했는지 따라갑니다.</p>
+  <div class="box easy"><strong>읽는 법</strong>보라색 점선 밑줄 <dfn>이런 단어</dfn>는 용어입니다. 처음 나올 때 바로 옆 보라색 상자에서 뜻을 풀어 두었고, 4부 용어 사전에 모두 모아 두었습니다. 1부를 먼저 읽고, 2부는 궁금한 곳부터 봐도 됩니다. 마지막 "스스로 점검"으로 확인해 보세요.</div>
+  <div class="stats">
+    <div class="stat"><b>650건</b><span>챗봇이 아는 지원사업 공고 (매일 자동 갱신)</span></div>
+    <div class="stat"><b>100%</b><span>답변에 출처 번호가 붙은 비율</span></div>
+    <div class="stat"><b>6/6</b><span>관계없는 질문을 거절한 수</span></div>
+    <div class="stat"><b>0원</b><span>유료 서비스 없이 내 PC에서 동작</span></div>
+  </div>
+</header>
+
+<!-- ═════════════════════ 1부 ═════════════════════ -->
+<div class="partbanner"><b>PART 1</b><span>RAG 기초: 개념부터 차근차근</span></div>
+
+<h2 id="b-llm">LLM은 무엇이고 왜 지어낼까</h2>
+<div class="term"><b>LLM</b><span>Large Language Model, 대규모 언어 모델. ChatGPT, 이 프로젝트에서 쓰는 qwen2.5 같은 것. 엄청난 양의 글을 읽고 "다음에 올 단어"를 맞히도록 학습한 프로그램입니다.</span></div>
+<p>LLM은 질문을 받으면 "이 다음에 가장 그럴듯한 단어"를 하나씩 이어 붙여 답을 만듭니다. 그래서 문장은 아주 자연스럽습니다. 문제는 두 가지입니다.</p>
+<div class="steps">
+  <div><p style="margin:0"><b>학습한 뒤의 일은 모릅니다</b><span>어제 올라온 지원사업 공고는 학습 데이터에 없습니다.</span></p></div>
+  <div><p style="margin:0"><b>모르는 것도 그럴듯하게 말합니다</b><span>"그 사업은 최대 5천만 원까지 지원합니다"처럼, 사실이 아닌데 자연스러운 문장을 만들 수 있습니다.</span></p></div>
+</div>
+<div class="term"><b>Hallucination</b><span>환각. LLM이 근거 없는 내용을 사실처럼 말하는 현상. 지원사업처럼 금액·기간이 틀리면 실제 손해가 나는 분야에서는 가장 피해야 하는 문제입니다.</span></div>
+<div class="box easy"><strong>쉽게 말하면</strong>LLM은 책을 덮고 기억만으로 시험을 보는 학생과 같습니다. 문장력은 뛰어나지만, 모르는 문제에도 자신 있게 답을 써 냅니다.</div>
+
+<h2 id="b-rag">RAG = 오픈북 시험</h2>
+<p>그래서 학생에게 책을 펼쳐 주는 방법을 씁니다. 질문이 들어오면 먼저 관련 자료를 찾아서 LLM에게 같이 주고, "이 자료만 보고 답해"라고 시킵니다. 이것이 RAG입니다.</p>
+<div class="term"><b>RAG</b><span>Retrieval-Augmented Generation. 이름을 한 단어씩 풀면 <b>Retrieval</b>(찾아오기) → <b>Augmented</b>(보강한) → <b>Generation</b>(생성). "찾아온 자료로 보강해서 답을 생성한다"는 뜻입니다.</span></div>
+<div class="figure">
+<svg viewBox="0 0 760 250" role="img" aria-label="RAG의 세 단계: 찾기, 자료 붙이기, 답하기">
+  <g font-size="14">
+    <rect x="10" y="30" width="150" height="80" rx="12" fill="var(--code-bg)"/>
+    <text x="85" y="62" text-anchor="middle" font-weight="700">질문</text>
+    <text x="85" y="86" text-anchor="middle" font-size="12" fill="var(--ink-2)">"수출 지원 있어?"</text>
+    <rect x="200" y="30" width="160" height="80" rx="12" fill="var(--accent-soft)"/>
+    <text x="280" y="58" text-anchor="middle" font-weight="700">① 찾기</text>
+    <text x="280" y="80" text-anchor="middle" font-size="12">공고 650건 중</text>
+    <text x="280" y="97" text-anchor="middle" font-size="12">관련 부분 5개</text>
+    <rect x="400" y="30" width="160" height="80" rx="12" fill="var(--accent-soft)"/>
+    <text x="480" y="58" text-anchor="middle" font-weight="700">② 자료 붙이기</text>
+    <text x="480" y="80" text-anchor="middle" font-size="12">질문 + [1]~[5] 자료</text>
+    <text x="480" y="97" text-anchor="middle" font-size="12">+ 규칙</text>
+    <rect x="600" y="30" width="150" height="80" rx="12" fill="var(--accent)"/>
+    <text x="675" y="62" text-anchor="middle" font-weight="700" fill="#ffffff">③ 답하기</text>
+    <text x="675" y="86" text-anchor="middle" font-size="12" fill="#ffffff">LLM이 자료만 보고</text>
+    <path d="M162 70 H194 M188 64 L194 70 L188 76" stroke="var(--ink-3)" stroke-width="2" fill="none"/>
+    <path d="M362 70 H394 M388 64 L394 70 L388 76" stroke="var(--ink-3)" stroke-width="2" fill="none"/>
+    <path d="M562 70 H594 M588 64 L594 70 L588 76" stroke="var(--ink-3)" stroke-width="2" fill="none"/>
+    <rect x="200" y="140" width="550" height="90" rx="12" fill="var(--good-soft)"/>
+    <text x="220" y="170" font-weight="700" fill="var(--good)">답변 예</text>
+    <text x="220" y="196">"중소기업 수출지원사업 통합 공고 [2]에 따르면 대상은 중소기업 [2]이며…"</text>
+    <text x="220" y="218" font-size="12" fill="var(--ink-2)">[2] 같은 번호 = 몇 번째 자료에서 가져왔는지. 사용자가 원문을 직접 확인할 수 있습니다.</text>
+  </g>
+</svg>
+</div>
+<div class="box easy"><strong>쉽게 말하면</strong>도서관 사서(검색)가 관련 책의 해당 쪽을 펴서 주면, 학생(LLM)이 그걸 보고 답을 쓰면서 "몇 쪽에 있음"이라고 출처를 적는 방식입니다. 자료에 없으면 "모르겠습니다"라고 쓰게 합니다.</div>
+
+<h2 id="b-search">문서를 찾는 두 가지 방법</h2>
+<p>RAG의 품질은 대부분 ①찾기에서 결정됩니다. 엉뚱한 자료를 주면 LLM도 엉뚱하게 답하기 때문입니다. 찾는 방법은 크게 두 가지입니다.</p>
+<div class="table"><table>
+<tr><th style="width:18%">방법</th><th style="width:38%">어떻게 찾나</th><th>잘하는 것 / 못하는 것</th></tr>
+<tr><td><b>단어 검색</b><br><code>BM25</code></td><td>질문의 단어가 문서에 몇 번, 얼마나 드물게 나오는지로 점수를 매김. 책 뒤쪽 "찾아보기(색인)"에서 단어를 찾는 것과 비슷</td><td>"라이브커머스"처럼 <b>같은 단어</b>가 있으면 정확함<br>"실시간 방송 판매"처럼 <b>다른 말로 물으면 못 찾음</b></td></tr>
+<tr><td><b>의미 검색</b><br><code>kNN</code></td><td>문장을 숫자 좌표로 바꿔서(다음 절의 임베딩), 질문과 <b>뜻이 가까운</b> 문서를 찾음</td><td>표현이 달라도 뜻이 같으면 찾음<br>고유명사나 정확한 숫자는 약할 수 있음</td></tr>
+</table></div>
+<div class="term"><b>BM25</b><span>단어 검색 점수 계산법의 이름. 질문 단어가 문서에 자주 나올수록, 그리고 그 단어가 다른 문서에는 드물수록 점수가 높습니다.</span></div>
+<div class="term"><b>kNN</b><span>k-Nearest Neighbors, k개의 가장 가까운 이웃. 질문 좌표와 가장 가까운 문서 좌표 k개를 찾는 방법입니다.</span></div>
+<p>이 프로젝트는 둘을 섞어 씁니다. 이것을 <dfn>하이브리드 검색</dfn>이라고 부르고, 2부에서 어떻게 섞는지 봅니다.</p>
+
+<h2 id="b-embed">임베딩: 문장을 지도 위 점으로</h2>
+<div class="term"><b>임베딩</b><span>글을 숫자 목록(좌표)으로 바꾸는 것. 뜻이 비슷한 글은 비슷한 숫자, 즉 가까운 위치가 되도록 학습된 모델이 해 줍니다.</span></div>
+<p>아래 그림은 문장들을 지도 위에 찍은 모습을 상상한 것입니다. 단어는 달라도 뜻이 같은 문장은 가까이 모이고, 관계없는 문장은 멀리 떨어집니다.</p>
+<div class="figure">
+<svg viewBox="0 0 760 330" role="img" aria-label="뜻이 비슷한 문장이 가까이 모이는 2차원 지도">
+  <rect x="10" y="10" width="740" height="310" rx="12" fill="var(--paper)"/>
+  <g stroke="var(--line)"><line x1="10" y1="165" x2="750" y2="165"/><line x1="380" y1="10" x2="380" y2="320"/></g>
+  <circle cx="180" cy="95" r="70" fill="var(--accent)" opacity=".08"/>
+  <g font-size="13">
+    <circle cx="150" cy="80" r="7" fill="var(--accent)"/><text x="162" y="75">라이브커머스 제작비 지원</text>
+    <circle cx="190" cy="118" r="7" fill="var(--accent)"/><text x="202" y="123">실시간 방송으로 팔고 싶어요 (질문)</text>
+    <circle cx="112" cy="130" r="7" fill="var(--accent)"/><text x="30" y="155">온라인 판로 지원</text>
+    <circle cx="560" cy="80" r="7" fill="var(--warn)"/><text x="572" y="85">수출 인증 비용 지원</text>
+    <circle cx="610" cy="120" r="7" fill="var(--warn)"/><text x="480" y="140">해외 규격인증 획득</text>
+    <circle cx="210" cy="260" r="7" fill="var(--good)"/><text x="222" y="265">창업 사업화 자금</text>
+    <circle cx="640" cy="270" r="7" fill="var(--bad)"/><text x="530" y="298">김치찌개 끓이는 법 (관계없음)</text>
+  </g>
+  <path d="M190 118 L150 80" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="30" y="36" font-size="12" fill="var(--ink-2)">실제로는 2차원이 아니라 768차원. 원리는 같습니다.</text>
+</svg>
+<p class="cap">"실시간 방송으로 팔고 싶어요"에는 "라이브커머스"라는 단어가 없습니다. 단어 검색은 못 찾지만, 의미 검색은 두 점이 가까워서 찾습니다.</p>
+</div>
+<div class="term"><b>벡터</b><span>숫자 여러 개를 줄 세운 것. 예: [0.12, -0.08, 0.33, …]. 임베딩의 결과물이 벡터입니다.</span></div>
+<div class="term"><b>차원</b><span>벡터에 들어 있는 숫자의 개수. 이 프로젝트의 임베딩 모델(ko-sroberta)은 768개의 숫자로 문장 하나를 표현해서 "768차원"이라고 합니다.</span></div>
+<div class="term"><b>유사도</b><span>두 벡터가 얼마나 가까운지를 0~1 사이 점수로 나타낸 것(여기서는 코사인 유사도). 1에 가까울수록 뜻이 비슷합니다.</span></div>
+<div class="box easy"><strong>쉽게 말하면</strong>임베딩은 모든 문장에 "뜻의 주소"를 붙여 주는 일입니다. 질문의 주소와 가까운 주소를 가진 공고를 찾는 것이 의미 검색입니다.</div>
+
+<h2 id="b-chunk">왜 문서를 잘게 쪼갤까</h2>
+<p>공고 PDF 하나는 수십 쪽이 되기도 합니다. 통째로 쓰지 않고 잘게 나누는 이유는 두 가지입니다.</p>
+<div class="steps">
+  <div><p style="margin:0"><b>LLM이 한 번에 읽을 수 있는 양에 한계가 있습니다</b><span>이 한계를 컨텍스트 윈도우라고 합니다. 넘치면 잘립니다(3부에서 실제로 겪은 문제).</span></p></div>
+  <div><p style="margin:0"><b>필요한 부분만 정확히 주는 게 답이 좋아집니다</b><span>50쪽 전체보다 "지원 대상" 부분 한 쪽을 주는 편이 LLM이 헷갈리지 않습니다.</span></p></div>
+</div>
+<div class="term"><b>청크</b><span>chunk, 덩어리. 긴 문서를 잘라 만든 조각. 이 프로젝트는 공고 650건을 약 4,900개 청크로 나눴습니다.</span></div>
+<div class="term"><b>토큰</b><span>LLM이 글을 세는 단위. 단어보다 작은 조각으로, 한국어는 대략 1~2글자가 토큰 하나입니다. "500토큰 청크"는 대략 850자 정도입니다.</span></div>
+<div class="term"><b>컨텍스트 윈도우</b><span>LLM이 한 번에 읽을 수 있는 토큰 수의 한도. 질문 + 자료 + 규칙이 모두 이 안에 들어가야 합니다.</span></div>
+
+<h2 id="b-store">검색엔진과 색인</h2>
+<p>청크 4,900개와 각각의 768차원 벡터를 매번 처음부터 비교하면 느립니다. 그래서 찾기 쉽게 정리해 두는 저장소를 씁니다.</p>
+<div class="term"><b>OpenSearch</b><span>문서를 저장하고 빠르게 검색해 주는 검색엔진 프로그램. 단어 검색(BM25)과 벡터 검색(kNN)을 모두 지원해서, 이 프로젝트의 모든 공고 조각이 여기에 들어 있습니다.</span></div>
+<div class="term"><b>색인 (인덱스)</b><span>검색하기 쉽게 정리해서 넣어 두는 것, 또는 그렇게 정리된 저장 공간. 이 프로젝트의 색인 이름은 <code>idx_support_chunk</code>입니다.</span></div>
+<div class="box easy"><strong>쉽게 말하면</strong>도서관의 책장과 도서 목록 카드입니다. 책(청크)을 꽂아 두고, 단어로 찾는 목록과 뜻으로 찾는 목록을 둘 다 만들어 둔 곳입니다.</div>
+
+<h2 id="b-prompt">프롬프트와 가드레일</h2>
+<div class="term"><b>프롬프트</b><span>LLM에게 보내는 글 전체. 이 프로젝트에서는 "규칙 + 찾아온 자료 [1]~[5] + 사용자 질문"으로 구성됩니다.</span></div>
+<p>규칙에는 "자료에 있는 내용만 쓸 것", "문장마다 [번호]로 출처를 달 것", "자료로 답할 수 없으면 '찾지 못했습니다'라고만 쓸 것" 같은 지시가 들어갑니다. 하지만 LLM이 규칙을 항상 지키지는 않습니다. 그래서 코드로 한 번 더 검사합니다.</p>
+<div class="term"><b>가드레일</b><span>도로 옆 난간처럼, 잘못된 답이 사용자에게 가지 않도록 코드로 거는 안전장치. 이 프로젝트는 LLM을 부르기 전과 후에 하나씩 둡니다.</span></div>
+
+<h2 id="b-eval">잘 되는지 어떻게 알까</h2>
+<p>"잘 되는 것 같다"는 느낌은 믿을 수 없어서, 정답을 미리 정해 둔 질문 목록으로 점수를 냅니다.</p>
+<div class="term"><b>평가셋</b><span>질문과 그 질문의 정답 공고를 미리 짝지어 둔 목록. 이 프로젝트는 관련 질문 27개 + 같은 뜻을 다르게 쓴 질문 27개 + 관계없는 질문 6개입니다.</span></div>
+<div class="term"><b>Hit@5</b><span>정답 공고가 검색 결과 상위 5개 안에 들어간 질문의 비율. 80%면 10번 중 8번은 5위 안에서 정답을 찾았다는 뜻입니다.</span></div>
+<div class="term"><b>MRR</b><span>정답이 몇 등으로 나왔는지를 반영한 점수. 1등이면 1, 2등이면 1/2, 3등이면 1/3, 없으면 0으로 계산해 평균을 냅니다. 1에 가까울수록 정답이 앞에 옵니다.</span></div>
+<div class="term"><b>출처 인용률</b><span>답변 중 [번호]로 출처를 단 답변의 비율. 목표는 95% 이상.</span></div>
+
+<div class="box"><strong>1부 요약: 개념이 프로젝트의 어디에 있나</strong>
+<div class="table" style="margin:10px 0 0"><table>
+<tr><th>개념</th><th>이 프로젝트에서</th><th>파일</th></tr>
+<tr><td>청크</td><td>공고를 500~800토큰으로 자름</td><td><code>src/preprocessing/chunker.py</code></td></tr>
+<tr><td>임베딩</td><td>ko-sroberta 모델로 768차원</td><td><code>src/indexing/embedder.py</code></td></tr>
+<tr><td>색인</td><td>OpenSearch <code>idx_support_chunk</code></td><td><code>src/indexing/bulk_indexer.py</code></td></tr>
+<tr><td>검색 (R)</td><td>BM25 + kNN 하이브리드</td><td><code>src/rag/hybrid_search.py</code></td></tr>
+<tr><td>프롬프트 (A)</td><td>규칙 + 자료 [1]~[5] + 질문</td><td><code>src/rag/prompt_template.py</code></td></tr>
+<tr><td>생성 (G)</td><td>Ollama qwen2.5 7B</td><td><code>src/rag/generator.py</code></td></tr>
+<tr><td>가드레일</td><td>호출 전 점수 검사, 호출 후 번호 검사</td><td><code>src/rag/guardrail.py</code></td></tr>
+<tr><td>평가</td><td>Hit@5, MRR, 인용률</td><td><code>src/evaluation/</code></td></tr>
+</table></div></div>
+
+<!-- ═════════════════════ 2부 ═════════════════════ -->
+<div class="partbanner"><b>PART 2</b><span>이 프로젝트 따라가기</span></div>
+
+<h2 id="p-arch">전체 구조: 세 개의 흐름</h2>
+<p class="sub">미리 준비하는 <b>색인 파이프라인</b>, 질문마다 도는 <b>온라인 서비스</b>, 매일 새 공고를 더하는 <b>자동 갱신</b>이 OpenSearch 색인 하나를 같이 씁니다.</p>
+<div class="term"><b>파이프라인</b><span>여러 처리 단계를 순서대로 이어 놓은 것. 앞 단계의 결과가 다음 단계의 입력이 됩니다(수집 → 추출 → 청킹 → 임베딩 → 색인).</span></div>
+<div class="figure">
+<pre class="mermaid">
+flowchart LR
+  subgraph OFF["색인 파이프라인 (8월, 한 번)"]
+    A["공고 수집<br/>fetch_bizinfo.py"] --> B["첨부파일 574건"]
+    B --> C["글자 뽑기<br/>extractor.py"]
+    C --> D["조각내기<br/>chunker.py"]
+    D --> E["좌표로 바꾸기<br/>embedder.py"]
+  end
+  subgraph SYNC["자동 갱신 (매일 06:00)"]
+    S1["새 공고만<br/>sync_bizinfo.py"]
+  end
+  E --> IDX[("OpenSearch 색인<br/>단어 검색 + 의미 검색")]
+  S1 --> IDX
+  subgraph ON["챗봇 서비스 (질문마다)"]
+    W["웹 화면"] --> API["FastAPI 서버"]
+    API --> P["RAG 파이프라인"]
+    P --> L["LLM (Ollama)"]
+    API --> DB[("대화 기록<br/>SQLite")]
+  end
+  P --> IDX
+</pre>
+</div>
+<div class="term"><b>API / 서버</b><span>화면(웹 페이지)이 "이 질문에 답해 줘"라고 요청을 보내면 받아서 처리하고 결과를 돌려주는 프로그램. 이 프로젝트는 파이썬의 FastAPI로 만들었습니다.</span></div>
+<div class="term"><b>SQLite</b><span>파일 하나로 된 작은 데이터베이스. 사용자가 무엇을 물었고 어떻게 답했는지(대화 기록)를 저장합니다.</span></div>
+
+<h2 id="p-collect">수집과 전처리: 파일에서 글자를 꺼내 조각내기</h2>
+<p class="sub">기업마당(bizinfo.go.kr)이 공식으로 제공하는 Open API로 공고 목록과 첨부파일을 받았습니다. 웹 페이지를 긁어 오는 방식보다 안정적이고, 공고 ID·기간·대상 같은 값이 정리된 형태로 옵니다.</p>
+<div class="term"><b>Open API</b><span>기관이 외부 프로그램에 데이터를 주기 위해 열어 둔 창구. 정해진 주소로 요청하면 공고 목록을 XML 형식으로 돌려줍니다.</span></div>
+<div class="term"><b>전처리</b><span>검색에 쓸 수 있도록 원본 데이터를 다듬는 모든 과정. 여기서는 파일에서 글자 뽑기와 조각내기입니다.</span></div>
+<div class="figure">
+<svg viewBox="0 0 760 250" role="img" aria-label="수집부터 청크까지 건수가 줄어드는 과정">
+  <g font-size="14">
+    <rect x="10" y="40" width="160" height="150" rx="10" fill="var(--accent-soft)"/>
+    <text x="90" y="100" text-anchor="middle" font-weight="700" font-size="30">574</text>
+    <text x="90" y="128" text-anchor="middle">첨부파일 수집</text>
+    <text x="90" y="150" text-anchor="middle" fill="var(--ink-2)" font-size="12">8월, 서울</text>
+    <rect x="200" y="55" width="160" height="135" rx="10" fill="var(--accent-soft)"/>
+    <text x="280" y="108" text-anchor="middle" font-weight="700" font-size="30">533</text>
+    <text x="280" y="136" text-anchor="middle">글자 뽑기 성공</text>
+    <text x="280" y="158" text-anchor="middle" fill="var(--ink-2)" font-size="12">92.9% · PDF/한글</text>
+    <rect x="390" y="70" width="160" height="120" rx="10" fill="var(--accent-soft)"/>
+    <text x="470" y="118" text-anchor="middle" font-weight="700" font-size="30">491</text>
+    <text x="470" y="146" text-anchor="middle">글자가 있는 공고</text>
+    <text x="470" y="166" text-anchor="middle" fill="var(--ink-2)" font-size="12">스캔 이미지 42건 제외</text>
+    <rect x="580" y="30" width="170" height="160" rx="10" fill="var(--accent)"/>
+    <text x="665" y="96" text-anchor="middle" font-weight="700" font-size="30" fill="#ffffff">3,884</text>
+    <text x="665" y="124" text-anchor="middle" fill="#ffffff">청크 (조각)</text>
+    <text x="665" y="146" text-anchor="middle" fill="#ffffff" font-size="12">지금은 4,907개</text>
+  </g>
+  <g stroke="var(--ink-3)" stroke-width="2" fill="none"><path d="M172 115 h20 m-6 -6 l6 6 l-6 6"/><path d="M362 122 h20 m-6 -6 l6 6 l-6 6"/><path d="M552 130 h20 m-6 -6 l6 6 l-6 6"/></g>
+  <text x="10" y="222" font-size="13" fill="var(--ink-2)">빠진 것: 사진(PNG/JPG) 공고 38건은 글자 인식(OCR) 도구가 없어 제외, 깨진 PDF 2건.</text>
+</svg>
+</div>
+
+<h3>파일 종류는 이름이 아니라 내용으로 판단</h3>
+<p>파일 이름 끝의 <code>.pdf</code> 같은 부분을 <dfn>확장자</dfn>라고 합니다. 그런데 <code>.pdf</code>로 받은 파일이 실제로는 한글(HWP) 파일인 경우가 있었습니다. 그래서 파일 맨 앞 몇 바이트에 들어 있는 "형식 표시"를 읽고 판단합니다.</p>
+<div class="term"><b>매직 바이트</b><span>파일 맨 앞에 들어 있는 고유한 표시값. PDF는 항상 <code>%PDF</code>로 시작하는 식이라, 이름이 틀려도 진짜 형식을 알 수 있습니다.</span></div>
+<div class="figure">
+<svg viewBox="0 0 760 170" role="img" aria-label="파일 앞부분으로 형식 판별">
+  <g font-size="13">
+    <text x="10" y="24" font-weight="600">파일 맨 앞</text><text x="300" y="24" font-weight="600">진짜 형식</text><text x="480" y="24" font-weight="600">사용하는 추출 함수</text>
+    <rect x="10" y="38" width="260" height="34" rx="6" fill="var(--code-bg)"/><text x="22" y="60" font-family="JetBrains Mono, monospace">%PDF</text>
+    <rect x="10" y="80" width="260" height="34" rx="6" fill="var(--code-bg)"/><text x="22" y="102" font-family="JetBrains Mono, monospace">D0 CF 11 E0 …</text>
+    <rect x="10" y="122" width="260" height="34" rx="6" fill="var(--code-bg)"/><text x="22" y="144" font-family="JetBrains Mono, monospace">PK (압축 파일)</text>
+    <text x="300" y="60">PDF</text><text x="300" y="102">옛 한글 (HWP)</text><text x="300" y="144">새 한글 (HWPX)</text>
+    <text x="480" y="60" font-family="JetBrains Mono, monospace">extract_pdf()</text>
+    <text x="480" y="102" font-family="JetBrains Mono, monospace">extract_hwp_ole()</text>
+    <text x="480" y="144" font-family="JetBrains Mono, monospace">extract_hwpx()</text>
+  </g>
+</svg>
+</div>
+
+<h3>조각내기: 문장 중간에서 자르지 않고, 경계는 겹치게</h3>
+<p>500~800토큰(약 850~1,360자)씩 자르되, 문장 중간에서 끊으면 뜻이 망가지므로 문장이 끝나는 곳에서 자릅니다. 그리고 조각 경계에 걸친 내용이 양쪽 조각에 모두 남도록 앞 조각의 끝 100토큰을 다음 조각 앞에 겹쳐 붙입니다. 이것을 <dfn>오버랩</dfn>이라고 합니다.</p>
+<div class="figure">
+<svg viewBox="0 0 760 150" role="img" aria-label="청크 오버랩 도식">
+  <g font-size="13">
+    <rect x="10" y="20" width="740" height="26" rx="5" fill="var(--code-bg)"/>
+    <text x="20" y="38" fill="var(--ink-2)">공고 원문: 문장1 · 문장2 · 문장3 · … · 문장N</text>
+    <rect x="10" y="62" width="300" height="30" rx="6" fill="var(--accent)" opacity=".85"/><text x="22" y="82" fill="#ffffff">조각 0</text>
+    <rect x="250" y="102" width="300" height="30" rx="6" fill="var(--accent)" opacity=".6"/><text x="262" y="122" fill="#ffffff">조각 1</text>
+    <rect x="250" y="62" width="60" height="70" rx="4" fill="none" stroke="var(--warn)" stroke-width="2" stroke-dasharray="4 3"/>
+    <text x="570" y="82" fill="var(--warn)" font-weight="600">겹치는 100토큰</text>
+    <text x="570" y="102" fill="var(--ink-2)">경계 근처 문장이</text><text x="570" y="120" fill="var(--ink-2)">양쪽 조각에 다 들어감</text>
+  </g>
+</svg>
+</div>
+
+<h2 id="p-index">색인: 조각 하나 = 문서 하나</h2>
+<p class="sub">OpenSearch에 넣는 문서 하나에는 조각의 글, 좌표(벡터), 그리고 필터용 정보(지역·분야·기간)가 함께 들어갑니다.</p>
+<pre class="code">{
+  "chunk_id": "PBLN_000000000119739_0",   ← 공고ID_조각번호. 저장할 때 문서 이름(_id)으로 씀
+  "program_name": "2026년 소상공인 온라인판로 지원사업 …",
+  "region_name": "서울",  "category": "내수",   ← 정확히 일치하는지로 거르는 값 (필터)
+  "apply_start": "2026-07-20", "apply_end": "2026-08-24",
+  "chunk_text": "…",                          ← 단어 검색(BM25)이 보는 글
+  "embedding": [0.012, -0.087, … 768개]        ← 의미 검색(kNN)이 보는 좌표
+}</pre>
+<div class="term"><b>필터</b><span>조건에 맞는 것만 남기는 거름망. "분야 = 수출"인 조각만 검색하는 식입니다.</span></div>
+<div class="term"><b>멱등성</b><span>같은 작업을 여러 번 해도 결과가 같은 성질. 조각 번호를 문서 이름으로 쓰면, 같은 조각을 다시 넣어도 덮어쓰기가 되어 중복이 생기지 않습니다.</span></div>
+<div class="box easy"><strong>쉽게 말하면</strong>책장에 책을 꽂을 때 각 칸에 고유 번호를 붙여 두는 것입니다. 같은 번호의 책이 다시 오면 새로 칸을 만들지 않고 그 칸의 책을 바꿔 끼웁니다. 그래서 몇 번을 다시 정리해도 책이 두 권씩 늘어나지 않습니다.</div>
+
+<h2 id="p-journey">질문 하나의 여정</h2>
+<p class="sub"><code>src/rag/pipeline.py</code>의 <code>answer_question()</code> 함수가 이 순서를 그대로 따릅니다.</p>
+<div class="figure">
+<pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant U as 사용자
+  participant P as RAG 파이프라인
+  participant S as OpenSearch
+  participant L as LLM
+  U->>P: "여성기업 대상 수출 지원사업 있어?"
+  P->>P: 질문에서 조건 뽑기 → 분야=수출, 대상=여성기업
+  P->>S: 단어 검색 20개 + 의미 검색 20개
+  S-->>P: 후보 조각들
+  P->>P: 점수 섞기 → 상위 5개 고르기
+  alt 가장 비슷한 조각도 유사도 0.75 미만
+    P-->>U: "찾지 못했습니다" (LLM을 부르지 않음)
+  else 관련 자료 있음
+    P->>L: 규칙 + 자료 [1]~[5] + 질문
+    L-->>P: 답변 초안
+    P->>P: 출처 번호 검사
+    P-->>U: 답변 + 근거 공고 카드
+  end
+</pre>
+</div>
+<div class="term"><b>슬롯</b><span>질문에서 뽑아낸 조건 값. "여성기업 수출"에서 분야=수출, 대상=여성기업. 먼저 정해진 단어 목록과 맞춰 보는 방식(정규식)으로 찾습니다.</span></div>
+<div class="term"><b>정규식</b><span>글자 패턴을 찾는 규칙 문법. "수출"이라는 글자가 들어 있는지 같은 것을 빠르게 검사합니다.</span></div>
+<p>결과는 다섯 가지 <dfn>상태(status)</dfn> 중 하나로 끝납니다. 화면과 평가가 이 값을 보고 다르게 처리합니다.</p>
+<div class="table"><table>
+<tr><th style="width:24%">status</th><th>뜻</th><th style="width:30%">화면</th></tr>
+<tr><td class="n">ok</td><td>출처를 단 정상 답변</td><td>답변 + 근거 카드</td></tr>
+<tr><td class="n">no_evidence</td><td>관련 공고가 없음</td><td>"찾지 못했어요"</td></tr>
+<tr><td class="n">ungrounded</td><td>LLM이 출처를 안 달아서 답을 버림</td><td>"근거 확인 불가"</td></tr>
+<tr><td class="n">llm_unavailable</td><td>LLM이 꺼져 있음</td><td>관련 공고 카드만</td></tr>
+<tr><td class="n">llm_error</td><td>LLM 호출 실패·시간 초과</td><td>관련 공고 카드만</td></tr>
+</table></div>
+
+<h2 id="p-hybrid">하이브리드 검색: 두 점수를 섞는 법</h2>
+<p>단어 검색 점수(BM25)는 0부터 수십까지 나오고, 의미 검색 점수는 0부터 1 사이입니다. 그냥 더하면 숫자가 큰 단어 검색이 결과를 다 가져갑니다. 그래서 먼저 두 점수를 같은 눈금(0~1)으로 맞춥니다.</p>
+<div class="term"><b>정규화</b><span>서로 다른 눈금의 값을 같은 범위로 맞추는 것. 여기서는 목록 안에서 가장 낮은 점수를 0, 가장 높은 점수를 1로 바꾸는 min-max 정규화를 씁니다: (점수 − 최저) ÷ (최고 − 최저).</span></div>
+<div class="figure">
+<svg viewBox="0 0 760 290" role="img" aria-label="하이브리드 점수 계산 도식">
+  <g font-size="13">
+    <text x="10" y="22" font-weight="600">① 각자 검색 (20개씩)</text>
+    <text x="260" y="22" font-weight="600">② 0~1로 눈금 맞추기</text>
+    <text x="530" y="22" font-weight="600">③ 섞어서 상위 5개</text>
+    <text x="10" y="52" fill="var(--ink-2)">단어 점수: 12.4 · 9.1 · 5.3</text>
+    <text x="10" y="76" fill="var(--ink-2)">의미 점수: 0.91 · 0.88 · 0.80</text>
+    <text x="10" y="112" fill="var(--ink-3)" font-size="12">눈금이 달라서</text>
+    <text x="10" y="130" fill="var(--ink-3)" font-size="12">그대로 더하면 안 됨</text>
+    <text x="260" y="52" font-family="JetBrains Mono, monospace">(x − 최저) / (최고 − 최저)</text>
+    <rect x="260" y="66" width="220" height="14" rx="3" fill="var(--warn)" opacity=".75"/><text x="486" y="78" font-size="12">1.00</text>
+    <rect x="260" y="86" width="104" height="14" rx="3" fill="var(--warn)" opacity=".75"/><text x="486" y="98" font-size="12">0.47</text>
+    <rect x="260" y="112" width="220" height="14" rx="3" fill="var(--accent)" opacity=".8"/><text x="486" y="124" font-size="12">1.00</text>
+    <rect x="260" y="132" width="151" height="14" rx="3" fill="var(--accent)" opacity=".8"/><text x="486" y="144" font-size="12">0.73</text>
+    <text x="530" y="52" font-family="JetBrains Mono, monospace">0.4 × 단어 + 0.6 × 의미</text>
+    <text x="530" y="80" fill="var(--ink-2)">+ 한 공고에서 최대 2조각</text>
+    <text x="530" y="100" fill="var(--ink-2)">+ 점수 같으면 조각 번호 순</text>
+    <rect x="530" y="116" width="210" height="30" rx="6" fill="var(--accent)"/><text x="545" y="136" fill="#ffffff" font-weight="600">상위 5개 → 자료 [1]~[5]</text>
+  </g>
+  <g font-size="12"><rect x="10" y="176" width="16" height="12" fill="var(--warn)" opacity=".75"/><text x="32" y="186">단어 점수</text><rect x="110" y="176" width="16" height="12" fill="var(--accent)" opacity=".8"/><text x="132" y="186">의미 점수</text></g>
+  <text x="10" y="222" font-size="13" fill="var(--ink-2)">"한 공고에서 최대 2조각": 전국 사업을 모은 큰 공고 하나가 조각을 수십 개 만들어 상위 5개를 독차지했기 때문.</text>
+  <text x="10" y="246" font-size="13" fill="var(--ink-2)">"점수 같으면 조각 번호 순": 순서를 정해 두지 않으면 같은 질문에 실행마다 다른 답이 나왔음(3부 문제 2).</text>
+  <text x="10" y="270" font-size="13" fill="var(--ink-2)">0.4 : 0.6 비율은 기획 문서의 권장값이고, 0.2~0.8을 모두 시험해 봐도 가장 좋았습니다.</text>
+</svg>
+</div>
+<div class="term"><b>가중치</b><span>여러 값을 섞을 때 각각을 얼마나 중요하게 볼지 정한 비율. 0.4 : 0.6이면 의미 검색을 조금 더 믿는다는 뜻입니다.</span></div>
+
+<h2 id="p-guard">2단 가드레일: 지어내지 않게 하는 두 개의 관문</h2>
+<div class="figure">
+<svg viewBox="0 0 760 230" role="img" aria-label="LLM 호출 전후 두 단계의 가드레일">
+  <g font-size="13">
+    <rect x="10" y="70" width="120" height="60" rx="10" fill="var(--code-bg)"/><text x="70" y="96" text-anchor="middle" font-weight="600">검색 상위 5개</text><text x="70" y="116" text-anchor="middle" fill="var(--ink-2)" font-size="12">가장 높은 유사도</text>
+    <path d="M140 100 L220 60 L300 100 L220 140 Z" fill="var(--warn-soft)" stroke="var(--warn)" stroke-width="1.5"/>
+    <text x="220" y="96" text-anchor="middle" font-weight="600">1차 관문</text><text x="220" y="114" text-anchor="middle" font-size="12">0.75 이상?</text>
+    <rect x="330" y="70" width="120" height="60" rx="10" fill="var(--accent-soft)"/><text x="390" y="96" text-anchor="middle" font-weight="600">LLM 답변</text><text x="390" y="116" text-anchor="middle" fill="var(--ink-2)" font-size="12">[번호] 달기 강제</text>
+    <path d="M460 100 L540 60 L620 100 L540 140 Z" fill="var(--warn-soft)" stroke="var(--warn)" stroke-width="1.5"/>
+    <text x="540" y="96" text-anchor="middle" font-weight="600">2차 관문</text><text x="540" y="114" text-anchor="middle" font-size="12">번호가 진짜?</text>
+    <rect x="640" y="70" width="110" height="60" rx="10" fill="var(--good-soft)"/><text x="695" y="105" text-anchor="middle" font-weight="600" fill="var(--good)">답변 전달</text>
+    <text x="220" y="190" text-anchor="middle" fill="var(--bad)">아니오 → "찾지 못했습니다"</text><text x="220" y="208" text-anchor="middle" fill="var(--ink-3)" font-size="12">LLM을 아예 안 부름</text>
+    <text x="540" y="190" text-anchor="middle" fill="var(--bad)">아니오 → 답을 버림</text><text x="540" y="208" text-anchor="middle" fill="var(--ink-3)" font-size="12">없는 번호는 지움</text>
+  </g>
+  <g stroke="var(--ink-3)" stroke-width="1.8" fill="none"><path d="M130 100 H140"/><path d="M300 100 H328"/><path d="M450 100 H460"/><path d="M620 100 H638"/><path d="M220 140 V170"/><path d="M540 140 V170"/></g>
+</svg>
+</div>
+<div class="term"><b>임계값</b><span>통과·차단을 가르는 기준 점수. 여기서는 0.75. 가장 비슷한 조각의 유사도가 이보다 낮으면 "관련 자료 없음"으로 봅니다.</span></div>
+<p>처음에는 질문 10개로 임계값을 0.77로 정했습니다. 그런데 평가해 보니 공고 제목과 다른 말로 물은 정상 질문의 약 5개 중 1개(18.5%)를 막고 있었습니다. 0.75로 낮추자 정상 질문은 모두 통과했고, 새로 통과한 관계없는 질문 2개("아파트 청약", "개인 주택담보대출")는 LLM이 스스로 거절했습니다.</p>
+<div class="box easy"><strong>쉽게 말하면</strong>정상 질문을 막으면 사용자는 답을 잃고 끝나지만, 관계없는 질문이 1차를 통과해도 2차 관문과 LLM이 한 번 더 거릅니다. 두 실수의 무게가 달라서 0.75를 골랐습니다.</div>
+
+<h2 id="p-service">서비스와 화면</h2>
+<div class="table"><table>
+<tr><th style="width:38%">주소 (API)</th><th>하는 일</th></tr>
+<tr><td class="n">GET /</td><td>챗봇 웹 화면</td></tr>
+<tr><td class="n">GET /review.html</td><td>대화 기록 검토 화면: 실제로 들어온 질문을 보고 좋음/나쁨 판정</td></tr>
+<tr><td class="n">POST /chat</td><td>질문을 받아 답변 + 근거 카드를 돌려주고, 대화 기록에 저장</td></tr>
+<tr><td class="n">GET /programs/{id}</td><td>공고 상세 (LLM 없이 저장된 내용 그대로)</td></tr>
+<tr><td class="n">GET /sync/status</td><td>자동 갱신이 언제 돌았는지</td></tr>
+<tr><td class="n">GET /health</td><td>검색엔진·LLM이 살아 있는지</td></tr>
+</table></div>
+<div class="term"><b>XSS</b><span>화면에 표시하는 글 속에 숨은 프로그램 코드가 실행되는 공격. LLM 답변도 외부에서 온 글이라, 화면에 넣기 전에 모든 특수문자를 글자 그대로 보이게 바꿉니다(이스케이프).</span></div>
+<div class="box"><strong>질문 원문은 어디에 저장되나</strong>대화 기록은 <code>data/chat_log.db</code>(SQLite)에만 저장합니다. 서버 로그 파일에는 "몇 초 걸렸다, 성공했다"만 남기고 질문 원문은 남기지 않습니다. 로그 파일은 여기저기 복사되기 쉬워서 개인정보가 섞일 수 있기 때문입니다. 사람이 남긴 판정(좋음/나쁨)은 원본 기록을 건드리지 않도록 별도 테이블에 저장합니다.</div>
+
+<h2 id="p-eval">평가 결과: 숫자를 믿기 전에 편향부터</h2>
+<p>평가 질문을 만들 때 공고 제목을 읽고 썼더니, 질문에 제목 단어가 많이 섞였습니다(27개 중 20개). 실제 사용자는 제목을 모르므로, 같은 뜻을 제목 단어 없이 다시 쓴 질문 27개를 따로 만들어 함께 쟀습니다.</p>
+<div class="term"><b>편향</b><span>측정 방법 때문에 결과가 한쪽으로 쏠리는 것. 제목 단어가 섞인 질문은 단어 검색에 유리해서 점수가 실제보다 좋게 나옵니다.</span></div>
+<div class="figure">
+<svg viewBox="0 0 760 250" role="img" aria-label="검색 방식별 Hit@5 비교 막대 그래프">
+  <g font-size="13">
+    <text x="10" y="22" font-weight="600">Hit@5 (%) · 질문 27개</text>
+    <line x1="170" y1="40" x2="170" y2="206" stroke="var(--line)"/>
+    <g stroke="var(--line)" stroke-dasharray="3 4"><line x1="310" y1="40" x2="310" y2="206"/><line x1="450" y1="40" x2="450" y2="206"/><line x1="590" y1="40" x2="590" y2="206"/><line x1="730" y1="40" x2="730" y2="206"/></g>
+    <line x1="618" y1="36" x2="618" y2="210" stroke="var(--warn)" stroke-width="2"/><text x="622" y="34" fill="var(--warn)" font-size="12">목표 80</text>
+    <text x="160" y="66" text-anchor="end">섞어 쓰기 · 제목 단어 있음</text><rect x="170" y="52" width="560" height="18" rx="3" fill="var(--accent)" opacity=".45"/><text x="724" y="66" text-anchor="end" font-size="12">100</text>
+    <text x="160" y="92" text-anchor="end">섞어 쓰기 · 다른 말로</text><rect x="170" y="78" width="498" height="18" rx="3" fill="var(--accent)"/><text x="674" y="92" font-size="12">88.9</text>
+    <text x="160" y="130" text-anchor="end">단어만 · 제목 단어 있음</text><rect x="170" y="116" width="477" height="18" rx="3" fill="var(--warn)" opacity=".45"/><text x="653" y="130" font-size="12">85.2</text>
+    <text x="160" y="156" text-anchor="end">단어만 · 다른 말로</text><rect x="170" y="142" width="207" height="18" rx="3" fill="var(--warn)"/><text x="383" y="156" font-size="12">37.0</text>
+    <text x="170" y="226" fill="var(--ink-3)" font-size="12">0</text><text x="310" y="226" text-anchor="middle" fill="var(--ink-3)" font-size="12">25</text><text x="450" y="226" text-anchor="middle" fill="var(--ink-3)" font-size="12">50</text><text x="590" y="226" text-anchor="middle" fill="var(--ink-3)" font-size="12">75</text><text x="730" y="226" text-anchor="end" fill="var(--ink-3)" font-size="12">100</text>
+  </g>
+</svg>
+<p class="cap">다른 말로 물으면 단어 검색만으로는 37%로 무너지고, 의미 검색을 섞어야 88.9%가 나옵니다. 1부에서 본 "지도 위 점" 개념이 실제로 효과를 낸 장면입니다. (공고가 650건으로 늘어난 지금은 85.2%)</p>
+</div>
+<div class="table"><table>
+<tr><th>지표</th><th>목표</th><th>결과</th></tr>
+<tr><td>출처 인용률</td><td>95% 이상</td><td class="n"><b>100%</b></td></tr>
+<tr><td>근거에 없는 숫자를 말한 답변 (hallucination)</td><td>5% 이하</td><td class="n"><b>0%</b></td></tr>
+<tr><td>관계없는 질문 거절</td><td>-</td><td class="n"><b>6/6</b></td></tr>
+<tr><td>응답 시간 (평균)</td><td>5초</td><td class="n">6.5초 (초과)</td></tr>
+</table></div>
+<div class="box warn"><strong>데이터 누수를 스스로 잡은 일</strong>LLM이 너무 자주 "모르겠다"고 해서 규칙에 "실시간 방송 = 라이브커머스" 같은 예시를 넣었더니 점수가 올랐습니다. 그런데 그 표현이 평가 질문에서 가져온 것이었습니다. 시험 문제의 답을 미리 알려준 셈이라 빼고 다시 쟀습니다.<br><br><b>데이터 누수</b>: 평가용 정보가 개발 과정에 새어 들어가 점수가 실제보다 좋게 나오는 것.</div>
+
+<h2 id="p-llm">로컬 LLM 연결기: 네 번 재고 네 번 고치다</h2>
+<div class="term"><b>로컬 LLM</b><span>인터넷의 유료 서비스가 아니라 내 컴퓨터(GPU)에서 직접 돌리는 LLM. 이 프로젝트는 Ollama라는 프로그램으로 qwen2.5 7B 모델을 돌립니다. "7B"는 모델 안의 숫자(파라미터)가 70억 개라는 뜻이고, 클수록 똑똑하지만 느립니다.</span></div>
+<div class="figure">
+<svg viewBox="0 0 760 270" role="img" aria-label="단계별 출처 인용률 변화">
+  <g font-size="13">
+    <text x="10" y="22" font-weight="600">출처 인용률 (%)</text>
+    <line x1="60" y1="210" x2="740" y2="210" stroke="var(--line)"/>
+    <line x1="60" y1="60" x2="740" y2="60" stroke="var(--warn)" stroke-dasharray="4 4"/><text x="740" y="54" text-anchor="end" fill="var(--warn)" font-size="12">목표 95</text>
+    <rect x="90" y="206" width="110" height="4" fill="var(--bad)"/><text x="145" y="196" text-anchor="middle" font-weight="600">측정 불가</text>
+    <rect x="260" y="138" width="110" height="72" rx="4" fill="var(--warn)"/><text x="315" y="130" text-anchor="middle" font-weight="600">48.0</text>
+    <rect x="430" y="65" width="110" height="145" rx="4" fill="var(--accent)" opacity=".7"/><text x="485" y="57" text-anchor="middle" font-weight="600">96.3</text>
+    <rect x="600" y="58" width="110" height="152" rx="4" fill="var(--accent)"/><text x="655" y="48" text-anchor="middle" font-weight="700">100</text>
+    <text x="145" y="232" text-anchor="middle" font-size="12">1차</text><text x="315" y="232" text-anchor="middle" font-size="12">2차</text><text x="485" y="232" text-anchor="middle" font-size="12">3차</text><text x="655" y="232" text-anchor="middle" font-size="12">4차</text>
+    <text x="145" y="252" text-anchor="middle" font-size="11.5" fill="var(--ink-2)">자료 65%가 잘림</text><text x="315" y="252" text-anchor="middle" font-size="11.5" fill="var(--ink-2)">번호 대신 사업명</text><text x="485" y="252" text-anchor="middle" font-size="11.5" fill="var(--ink-2)">답변 모양 예시 추가</text><text x="655" y="252" text-anchor="middle" font-size="11.5" fill="var(--ink-2)">거절 규칙 다듬기</text>
+  </g>
+</svg>
+</div>
+<div class="steps">
+  <div><p style="margin:0"><b>자료를 줬는데 "정보가 없다"</b><span>Ollama의 컨텍스트 윈도우 기본값이 4,096토큰이라, 5,836토큰짜리 프롬프트 중 2,050토큰만 들어가고 나머지는 에러 없이 잘렸습니다. 한도를 16,384로 늘린 모델을 따로 만들었습니다(<code>ollama/Modelfile</code>).</span></p></div>
+  <div><p style="margin:0"><b>출처를 번호 대신 이름으로</b><span>규칙을 문장으로만 주니 "OO 공고에 따르면"처럼 썼습니다. 작은 모델은 규칙보다 완성된 모양을 보여 주면 잘 따라 해서, 답변 모양 예시를 넣었습니다.</span></p></div>
+  <div><p style="margin:0"><b>예시를 그대로 베낌</b><span>이번엔 예시의 "OO 지원사업"을 실제 사업명으로 바꾸지 않고 그대로 썼습니다. 무엇을 채워야 하는지 적힌 틀(<code>&lt;근거 문서 제목의 사업명&gt;</code>)로 바꿨습니다.</span></p></div>
+  <div><p style="margin:0"><b>너무 쉽게 거절함</b><span>"도움이 될 사업이 하나라도 있으면 안내하고, 전혀 없을 때만 거절"로 규칙 순서를 바꿨습니다.</span></p></div>
+</div>
+
+<h2 id="p-sync">자동 갱신: 한 번 받은 데이터는 한 달이면 낡는다</h2>
+<p>9월 29일에 공고 목록을 다시 보니 서울 공고 517건 중 175건이 처음 보는 공고였습니다. 지원사업은 몇 주마다 올라오고 마감되기 때문에, 챗봇이 쓸모 있으려면 데이터가 계속 새로워야 합니다.</p>
+<div class="term"><b>증분 동기화</b><span>전체를 다시 받지 않고 새로 생긴 것만 골라 반영하는 방식. 이미 가진 공고 ID 목록과 비교해 없는 것만 처리합니다.</span></div>
+<div class="term"><b>작업 스케줄러 / crontab</b><span>정해진 시각에 프로그램을 자동으로 실행해 주는 기능. Windows는 작업 스케줄러, 리눅스는 crontab. 매일 06:00에 갱신이 돌도록 등록합니다.</span></div>
+<div class="figure">
+<pre class="mermaid">
+flowchart TB
+  T["매일 06:00<br/>작업 스케줄러"] --> L{"이미 실행 중?<br/>(잠금 파일)"}
+  L -- "예" --> X["이번엔 건너뜀"]
+  L -- "아니오" --> F["공고 목록 받기<br/>(몇 초)"]
+  F --> N["가진 목록에 없는 공고<br/>= 새 공고"]
+  N --> P["글자 뽑기 → 조각내기 → 좌표로 바꾸기<br/>(8월에 쓴 함수 재사용)"]
+  P --> I["OpenSearch에 넣기"]
+  I -- "실패" --> R["파일은 그대로 둠<br/>→ 내일 다시 시도"]
+  I -- "성공" --> W["파일 저장<br/>'처리함' 기록은 맨 마지막"]
+</pre>
+</div>
+<div class="box easy"><strong>첫 실행 결과</strong>새 공고 175건을 모두 반영해서 조각이 3,884개에서 4,907개가 됐고(5분 45초), 바로 다시 실행하면 "새 공고 0건"으로 5초 만에 끝납니다. 중간에 멈춰도 다음 날 알아서 이어서 처리하도록, 저장이 모두 성공한 뒤에만 "처리함"을 기록합니다.</div>
+<div class="term"><b>원자적 저장</b><span>임시 파일에 끝까지 다 쓴 다음 한 번에 바꿔치기하는 저장 방식. 쓰는 도중 전원이 꺼져도 반쯤 쓰인 파일이 남지 않습니다.</span></div>
+<div class="term"><b>잠금 파일</b><span>"지금 실행 중"이라는 표시로 만들어 두는 파일. 두 번 동시에 실행되는 것을 막습니다. 3시간이 넘으면 비정상 종료로 보고 무시합니다.</span></div>
+
+<!-- ═════════════════════ 3부 ═════════════════════ -->
+<div class="partbanner"><b>PART 3</b><span>문제 해결: 조용히 틀리는 것들</span></div>
+<h2 id="trouble">트러블슈팅 모음</h2>
+<div class="term"><b>트러블슈팅</b><span>문제가 생겼을 때 증상을 보고 원인을 찾아 해결하는 과정. 발표에서는 "무엇이 어려웠고 어떻게 풀었나"를 보여주는 부분입니다.</span></div>
+<p class="sub">공통점은 대부분 에러 메시지 없이 조용히 틀렸다는 점입니다. 그래서 숫자로 확인하는 습관이 중요했습니다.</p>
+
+<div class="ts"><h3>1. 확장자는 거짓말을 한다 <span class="tag">수집</span></h3><dl>
+<dt>증상</dt><dd><code>.pdf</code> 파일인데 PDF 읽기가 실패</dd>
+<dt>원인</dt><dd>내용은 한글(HWP) 파일. 공고 사이트가 이름을 잘못 붙여 줌</dd>
+<dt>해결</dt><dd>파일 맨 앞의 형식 표시(매직 바이트)로 판단</dd>
+<dt class="lesson">배운 점</dt><dd>외부에서 받은 데이터의 이름표도 확인해야 한다</dd></dl></div>
+
+<div class="ts"><h3>2. 같은 질문, 실행마다 다른 답 <span class="tag">검색</span></h3><dl>
+<dt>증상</dt><dd>코드를 안 바꿨는데 평가를 다시 하니 점수가 85.2% → 81.5%</dd>
+<dt>원인</dt><dd>점수가 똑같은 조각들의 순서를 정해 두지 않아서, 파이썬이 실행할 때마다 다르게 늘어놓음</dd>
+<dt>해결</dt><dd>점수가 같으면 조각 번호 순으로 정렬. 실행 조건을 바꿔 가며 같은 결과가 나오는지 확인하는 테스트 추가</dd>
+<dt class="lesson">배운 점</dt><dd>"가끔 다르게 나오는" 버그는 재현 조건부터 만들어야 보인다</dd></dl></div>
+
+<div class="ts"><h3>3. 고장이 "결과 없음"으로 보임 <span class="tag">예외 처리</span></h3><dl>
+<dt>증상</dt><dd>검색엔진을 꺼도 챗봇이 "관련 공고가 없어요"라고 답함</dd>
+<dt>원인</dt><dd>검색 함수가 연결 실패를 빈 결과로 바꿔 버림</dd>
+<dt>해결</dt><dd>실패를 그대로 알리고, 화면에 "검색 서버에 연결할 수 없어요"라고 표시</dd>
+<dt class="lesson">배운 점</dt><dd>"없음"과 "확인 불가"는 다른 상태다</dd></dl></div>
+
+<div class="ts"><h3>4. 조용히 잘리는 프롬프트 <span class="tag">LLM</span></h3><dl>
+<dt>증상</dt><dd>자료 5개를 줬는데 LLM이 "정보가 없다"며 일반 상식으로 답함</dd>
+<dt>원인</dt><dd>컨텍스트 윈도우 4,096토큰 초과분이 에러 없이 잘림 (5,836 중 2,050만 전달)</dd>
+<dt>해결</dt><dd>같은 글을 한도만 바꿔 보내서 실제로 들어간 양을 비교해 원인 확정 → 16k 모델</dd>
+<dt class="lesson">배운 점</dt><dd>LLM이 이상하면 "실제로 뭘 받았나"부터 잰다</dd></dl></div>
+
+<div class="ts"><h3>5. 효과가 0이었던 수정 <span class="tag">LLM</span></h3><dl>
+<dt>증상</dt><dd>질문 조건 뽑기에서 LLM을 껐는데, 평가 숫자가 한 자리도 안 바뀜</dd>
+<dt>원인</dt><dd>끄는 조건을 잘못 걸어서 실제 실행 경로에는 적용되지 않았음</dd>
+<dt>해결</dt><dd>조건을 고치고 테스트로 확인</dd>
+<dt class="lesson">배운 점</dt><dd>고쳤는데 숫자가 전혀 안 변하면, 고친 게 적용됐는지부터 의심한다</dd></dl></div>
+
+<div class="ts"><h3>6. 점수는 100%인데 이상한 답 <span class="tag">프롬프트</span></h3><dl>
+<dt>증상</dt><dd>답변 제목이 "OO 지원사업"</dd>
+<dt>원인</dt><dd>LLM이 예시를 베낌. 출처 번호는 붙어 있어서 인용률 점수로는 안 잡힘</dd>
+<dt>해결</dt><dd>예시를 틀로 바꾸고, 베낀 비율을 새 지표로 측정 (1/26 → 0)</dd>
+<dt class="lesson">배운 점</dt><dd>점수는 재는 것만 본다. 실제 화면을 눈으로 확인하는 단계가 필요하다</dd></dl></div>
+
+<div class="ts"><h3>7. "창업 지원"에 울산 사업 <span class="tag">데이터</span></h3><dl>
+<dt>증상</dt><dd>서울 서비스인데 지역을 안 밝히고 물으면 다른 지역 사업이 나옴 (사용자 제보)</dd>
+<dt>원인</dt><dd>전국 사업 수백 개를 모은 공고가 "서울" 목록으로 수집되어 지역 값이 서울</dd>
+<dt>해결</dt><dd>규칙에 "서울·전국 사업만 안내" 명시 → 8건 → 1건</dd>
+<dt class="lesson">배운 점</dt><dd>칸 이름이 "지역"이라고 그 값이 실제 지역인 건 아니다</dd></dl></div>
+
+<div class="ts"><h3>8. Windows가 바꾸는 줄바꿈 <span class="tag">환경</span></h3><dl>
+<dt>증상</dt><dd>실행 스크립트가 깨지고, CSV 파일의 줄 끝이 이상해짐</dd>
+<dt>원인</dt><dd>Windows에서 파일을 쓸 때 줄바꿈 문자가 자동으로 한 번 더 바뀜</dd>
+<dt>해결</dt><dd>바꾸지 않도록 지정하고, 옛 방식이면 실패하는 테스트로 남김</dd>
+<dt class="lesson">배운 점</dt><dd>한 번 겪은 버그는 다른 곳에서도 나온다. 테스트로 남겨 둔다</dd></dl></div>
+
+<h2 id="limits">한계와 다음 단계</h2>
+<div class="table"><table>
+<tr><th style="width:32%">한계</th><th>쉽게 말하면</th><th style="width:28%">다음 단계</th></tr>
+<tr><td>임베딩 모델이 조각 앞 128토큰만 읽음</td><td>긴 조각의 뒷부분은 "뜻의 주소"에 반영되지 않아 의미 검색으로 못 찾음</td><td>조각을 더 잘게 나눠 주소를 여러 개 붙이기</td></tr>
+<tr><td>기업 대상 공고만 있음</td><td>"청년 월세" 같은 개인 질문엔 답이 없음</td><td>개인 대상 공고 출처 추가</td></tr>
+<tr><td>전국 통합 공고의 지역 값</td><td>다른 지역 사업이 섞일 수 있음</td><td>공고를 사업 단위로 나눠 저장</td></tr>
+<tr><td>로컬 7B 모델의 속도</td><td>평균 6.5초 (목표 5초)</td><td>더 큰 모델이나 클라우드와 비교</td></tr>
+<tr><td>평가 질문이 적음</td><td>질문 1개가 점수 3.7%p를 움직임</td><td>공고를 안 보고 쓴 질문 추가</td></tr>
+</table></div>
+
+<!-- ═════════════════════ 4부 ═════════════════════ -->
+<div class="partbanner"><b>PART 4</b><span>복습</span></div>
+<h2 id="terms">용어 사전</h2>
+<div class="glossary">
+<h3>기초</h3>
+<div class="gl">
+  <div><b>LLM</b><span>대규모 언어 모델. 다음 단어를 맞히도록 학습해 글을 만드는 프로그램.</span><i>예: ChatGPT, qwen2.5</i></div>
+  <div><b>RAG</b><span>찾아온(Retrieval) 자료로 보강해서(Augmented) 답을 만드는(Generation) 방식. 오픈북 시험.</span></div>
+  <div><b>Hallucination (환각)</b><span>근거 없는 내용을 사실처럼 말하는 것.</span><i>예: 없는 지원금 액수를 말함</i></div>
+  <div><b>프롬프트</b><span>LLM에게 보내는 글 전체. 규칙 + 자료 + 질문.</span></div>
+  <div><b>토큰</b><span>LLM이 글을 세는 단위. 한국어 1~2글자 정도.</span></div>
+  <div><b>컨텍스트 윈도우</b><span>LLM이 한 번에 읽을 수 있는 토큰 수 한도. 넘치면 잘림.</span></div>
+</div>
+<h3>검색</h3>
+<div class="gl">
+  <div><b>임베딩</b><span>글을 뜻이 담긴 숫자 좌표(벡터)로 바꾸는 것.</span></div>
+  <div><b>벡터 / 차원</b><span>숫자를 줄 세운 것 / 그 숫자의 개수. 여기선 768개.</span></div>
+  <div><b>유사도 (코사인)</b><span>두 벡터가 얼마나 가까운지 0~1 점수. 1에 가까울수록 뜻이 비슷.</span></div>
+  <div><b>BM25</b><span>단어가 얼마나 자주, 얼마나 드물게 겹치는지로 매기는 검색 점수.</span></div>
+  <div><b>kNN</b><span>좌표가 가장 가까운 k개를 찾는 의미 검색.</span></div>
+  <div><b>하이브리드 검색</b><span>단어 검색과 의미 검색 점수를 섞어 쓰는 방식. 여기선 0.4 : 0.6.</span></div>
+  <div><b>정규화 (min-max)</b><span>눈금이 다른 점수를 0~1로 맞추는 것.</span></div>
+  <div><b>청크</b><span>긴 문서를 자른 조각. 여기선 500~800토큰.</span></div>
+  <div><b>오버랩</b><span>조각 경계를 겹쳐 붙여서 경계의 내용이 끊기지 않게 하는 것.</span></div>
+  <div><b>색인 (인덱스)</b><span>검색하기 쉽게 정리해서 넣어 둔 저장 공간.</span></div>
+  <div><b>필터</b><span>조건에 맞는 것만 남기는 거름망. 예: 분야 = 수출.</span></div>
+  <div><b>슬롯</b><span>질문에서 뽑은 조건 값(지역·분야·대상).</span></div>
+</div>
+<h3>답변 품질과 평가</h3>
+<div class="gl">
+  <div><b>가드레일</b><span>잘못된 답이 나가지 않게 코드로 거는 안전장치.</span></div>
+  <div><b>임계값</b><span>통과와 차단을 가르는 기준 점수. 여기선 유사도 0.75.</span></div>
+  <div><b>출처 인용률</b><span>[번호]로 출처를 단 답변의 비율.</span></div>
+  <div><b>평가셋</b><span>질문과 정답을 미리 짝지어 둔 목록.</span></div>
+  <div><b>Hit@5</b><span>정답이 상위 5개 안에 든 질문의 비율.</span></div>
+  <div><b>MRR</b><span>정답 순위의 역수(1등=1, 2등=1/2…) 평균.</span></div>
+  <div><b>편향</b><span>측정 방법 때문에 결과가 한쪽으로 쏠리는 것.</span></div>
+  <div><b>데이터 누수</b><span>평가용 정보가 개발에 새어 들어가 점수가 부풀려지는 것.</span></div>
+</div>
+<h3>개발과 운영</h3>
+<div class="gl">
+  <div><b>파이프라인</b><span>처리 단계를 순서대로 이어 놓은 것.</span></div>
+  <div><b>API / 서버</b><span>화면의 요청을 받아 처리하고 결과를 돌려주는 프로그램. 여기선 FastAPI.</span></div>
+  <div><b>Open API</b><span>기관이 데이터를 외부 프로그램에 주려고 열어 둔 창구.</span></div>
+  <div><b>SQLite</b><span>파일 하나로 된 작은 데이터베이스. 대화 기록 저장.</span></div>
+  <div><b>로컬 LLM / Ollama</b><span>내 컴퓨터에서 직접 돌리는 LLM / 그걸 돌려 주는 프로그램.</span></div>
+  <div><b>매직 바이트</b><span>파일 맨 앞의 형식 표시. 이름이 틀려도 진짜 형식을 알 수 있음.</span></div>
+  <div><b>멱등성</b><span>여러 번 해도 결과가 같은 성질. 다시 넣어도 중복이 안 생김.</span></div>
+  <div><b>증분 동기화</b><span>새로 생긴 것만 골라 반영하는 방식.</span></div>
+  <div><b>작업 스케줄러 / crontab</b><span>정해진 시각에 프로그램을 자동 실행하는 기능.</span></div>
+  <div><b>원자적 저장</b><span>임시 파일에 다 쓰고 한 번에 교체. 반쯤 쓴 파일이 안 남음.</span></div>
+  <div><b>XSS</b><span>화면에 넣은 글 속 코드가 실행되는 공격. 이스케이프로 막음.</span></div>
+  <div><b>회귀 테스트</b><span>한 번 고친 버그가 다시 생기지 않았는지 자동으로 확인하는 테스트. 이 프로젝트는 200개 넘게 있음.</span></div>
+</div>
+</div>
+
+<h2 id="quiz">스스로 점검</h2>
+<p class="sub">먼저 답을 떠올린 뒤 펼쳐 보세요. 위쪽이 기초, 아래로 갈수록 이 프로젝트에 관한 질문입니다.</p>
+<details><summary>기초 1. LLM만 쓰면 왜 지원사업 챗봇으로 부족한가요?</summary><p>학습 이후에 올라온 공고를 모르고, 모르는 것도 그럴듯하게 지어내기(hallucination) 때문입니다. 금액이나 기간이 틀리면 실제 손해가 납니다.</p></details>
+<details><summary>기초 2. RAG를 한 문장으로 설명하면?</summary><p>질문이 오면 관련 자료를 먼저 찾아서 LLM에게 같이 주고, 그 자료만 보고 출처를 달아 답하게 하는 방식입니다. 오픈북 시험과 같습니다.</p></details>
+<details><summary>기초 3. 단어 검색과 의미 검색은 어떻게 다른가요?</summary><p>단어 검색(BM25)은 같은 단어가 있어야 찾고, 의미 검색(kNN)은 문장을 좌표로 바꿔 뜻이 가까운 것을 찾습니다. "실시간 방송 판매"로 물으면 "라이브커머스" 공고는 의미 검색만 찾습니다.</p></details>
+<details><summary>기초 4. 문서를 통째로 쓰지 않고 청크로 쪼개는 이유 두 가지는?</summary><p>LLM이 한 번에 읽을 수 있는 양(컨텍스트 윈도우)에 한계가 있고, 필요한 부분만 정확히 주는 편이 답이 좋아지기 때문입니다.</p></details>
+<details><summary>기초 5. Hit@5가 88.9%라는 건 무슨 뜻인가요?</summary><p>질문 100개 중 약 89개는 정답 공고가 검색 결과 상위 5개 안에 들어 있었다는 뜻입니다.</p></details>
+<details><summary>프로젝트 1. 두 점수를 그냥 더하지 않고 정규화하는 이유는?</summary><p>단어 점수는 0~수십, 의미 점수는 0~1이라 그대로 더하면 단어 점수가 결과를 다 가져갑니다. 둘 다 0~1로 맞춘 뒤 0.4 : 0.6으로 섞습니다.</p></details>
+<details><summary>프로젝트 2. 가드레일 두 개는 각각 언제, 무엇을 검사하나요?</summary><p>1차는 LLM을 부르기 전에 가장 비슷한 조각의 유사도가 0.75 이상인지, 2차는 LLM 답변에 붙은 [번호]가 실제 자료 번호인지 검사합니다.</p></details>
+<details><summary>프로젝트 3. 임계값을 0.77에서 0.75로 낮춘 이유는?</summary><p>0.77은 다른 말로 물은 정상 질문의 18.5%를 막았고, 0.75에서 새로 통과한 관계없는 질문 2개는 LLM이 거절했기 때문입니다. 정상 질문을 막는 쪽이 더 큰 손해라고 판단했습니다.</p></details>
+<details><summary>프로젝트 4. 인용률 100%인데도 답변에 문제가 있었던 사례는?</summary><p>"OO 지원사업"처럼 예시를 베낀 답변입니다. 번호는 붙어 있어서 인용률로는 안 잡혔고, 화면을 보다 발견해서 새 지표를 만들었습니다.</p></details>
+<details><summary>프로젝트 5. 자동 갱신이 중간에 멈추면 어떻게 되나요?</summary><p>저장이 모두 성공한 뒤에만 "처리함"을 기록하므로, 멈춘 공고들은 다음 실행에서 다시 새 공고로 잡혀 처리됩니다. 검색엔진에 다시 넣어도 멱등성 덕분에 중복이 생기지 않습니다.</p></details>
+
+<footer>LocalGovSupportRAG · 2026-09-29 기준 · 수치 출처: docs/evaluation_report.md, docs/eval/*.json, data/sync_state.json</footer>
+</main>
+</div>
+
+<script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";mermaid.initialize({startOnLoad: true, theme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "default"});</script>
+</body>
+</html>
