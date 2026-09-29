@@ -26,15 +26,23 @@ from prompt_template import NO_EVIDENCE_MESSAGE
 #   또한 hybrid_search()의 score는 "후보군 안에서" min-max 정규화한 값이라 1등은 거의 항상 높게 나옵니다
 #   - 절대적인 관련도를 볼 수 없으므로, 정규화 전 원본 kNN 점수(knn_score)를 씁니다.
 #
-# [한계] 질의 10개로 정한 잠정값입니다. WBS 7.1(테스트 질의셋 20~30개)이 만들어지면 그 데이터로
-#   다시 조정해야 합니다. 너무 높이면 정상 질문도 "못 찾았다"고 답하고, 너무 낮추면 무관한 질문에 답합니다.
-KNN_RELEVANCE_THRESHOLD = 0.77
+# [2026-09-29 재조정 0.77 -> 0.75] 위 0.77은 질의 10개로 정한 잠정값이었고, WBS 7 평가셋(60개)으로 다시 봤습니다
+#   (docs/eval/answer_results.json).
+#   - 0.77은 공고 제목과 다른 말로 물은 정상 질문의 18.5%를 막았음(최저 0.754). 0.75면 원/어휘 치환 모두 100% 통과.
+#   - 대신 무관 질문 2건이 통과함("아파트 청약" 0.750, "개인 주택담보대출" 0.826). 그런데 실제 LLM(qwen2.5-rag:7b)이
+#     두 건 모두 "찾지 못했다"고 거절해서 최종 거절률 100% -> LLM + 호출 후 검사가 2차 방어선으로 동작함을 확인.
+#   - 두 실수의 비용이 다름: 정상 질문을 막으면 사용자는 답을 잃고, 무관 질문이 통과하면 LLM이 한 번 더 거름.
+#   너무 높이면 정상 질문도 "못 찾았다"고 답하고, 너무 낮추면 LLM 호출이 늘고 2차 방어선에 더 기대게 됩니다.
+KNN_RELEVANCE_THRESHOLD = 0.75
 
 # 인용이 하나도 없는 답변을 대체할 문구. NO_EVIDENCE_MESSAGE와 따로 두는 이유: "근거가 없어서 못 찾음"과
 # "근거는 있었는데 모델이 인용 규칙을 어김"은 원인이 달라서, 로그/평가(WBS 7.3)에서 구분해야 합니다.
 UNGROUNDED_MESSAGE = "답변의 근거를 확인할 수 없어 안내를 생략했습니다. 질문을 조금 더 구체적으로 바꿔서 다시 물어봐 주세요."
 
 _CITATION_PATTERN = re.compile(r"\[(\d+)\]")  # [1], [12] 같은 인용 표기에서 숫자만 뽑음
+# NO_EVIDENCE_MESSAGE의 핵심 표현과 모델이 바꿔 쓴 변형 (validate_answer 1) 주석). "찾을 수 없습니다"는 평가 중
+# 무관 질문("개인 주택담보대출")을 모델이 올바르게 거절하면서 쓴 표현.
+_NO_EVIDENCE_PATTERN = re.compile(r"찾지 못했|찾을 수 없")
 
 
 def has_enough_evidence(chunks: list[dict]) -> bool:
@@ -63,7 +71,12 @@ def validate_answer(answer: str, sources: list[dict]) -> dict:
     # 1) 모델이 스스로 "근거 없음" 문장을 낸 경우. 동일 비교(==)가 아니라 포함(in)으로 보는 이유:
     #    프롬프트 규칙 6("마지막 줄에 원문 확인 문구를 붙여라")과 겹쳐서 문장 뒤에 한 줄이 더 붙어
     #    나올 수 있기 때문입니다.
-    if NO_EVIDENCE_MESSAGE in answer:
+    #    [2026-09-29] 고정 문장을 그대로 쓰지 않고 바꿔 쓴 거절도 인정합니다. 로컬 7B 모델(qwen2.5)이
+    #    "제공된 공고 자료에서 서울 소상공인 창업 자금 지원사업을 찾지 못했습니다."처럼 질문을 끼워 넣어서,
+    #    완전 일치 검사로는 "인용 규칙 위반(ungrounded)"으로 잘못 분류됐습니다. 인용이 하나도 없고 거절 표현이
+    #    있을 때로만 좁혔으므로(인용이 있으면 일부 사업은 안내한 답변이라 아래 3)으로 감) 사용자에게 보이는 결과는
+    #    어차피 "답변 없음"으로 같고, 상태값과 안내 문구만 올바르게 바뀝니다.
+    if NO_EVIDENCE_MESSAGE in answer or (_NO_EVIDENCE_PATTERN.search(answer) and not _CITATION_PATTERN.search(answer)):
         return {"status": "no_evidence", "answer": NO_EVIDENCE_MESSAGE, "sources": [], "invalid_citations": []}
 
     cited = {int(n) for n in _CITATION_PATTERN.findall(answer)}

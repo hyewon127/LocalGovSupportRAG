@@ -164,7 +164,9 @@ def print_report(records: list[dict], table: list[dict], answers: dict) -> None:
     print(f"\n현재 임계값({KNN_RELEVANCE_THRESHOLD})에서 잘못 판정된 질의 {len(wrong)}건:")
     for r in wrong:
         verdict = "무관인데 통과" if r["variant"] == "off_topic" else "관련인데 차단"
-        print(f"- [{verdict}] {r['id']}({r['variant']}) {r['max_knn_score']:.3f}  {r['text']}")
+        # 검색 결과가 0건이면(필터가 전부 걸러낸 경우 등) 점수가 None - 포맷 에러로 리포트가 죽지 않게 따로 표시
+        score = "결과 없음" if r["max_knn_score"] is None else f"{r['max_knn_score']:.3f}"
+        print(f"- [{verdict}] {r['id']}({r['variant']}) {score}  {r['text']}")
 
     print("\n### B. 출처 인용률 / hallucination 대리 지표")
     if not answers["measured"]:

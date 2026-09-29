@@ -41,6 +41,7 @@ SUITES = [
     ("test_search_determinism.py", "opensearch", True),
     ("test_retrieval_quality.py", "opensearch", False),
     ("test_answer_eval.py", "opensearch", False),
+    ("test_llm_provider.py", "none", False),
     ("test_ui_backend_integration.py", "backend", False),
 ]
 
@@ -64,7 +65,9 @@ def start_backend(log_dir: Path) -> subprocess.Popen | None:
     uvicorn을 자식 프로세스로 띄우고 /health가 응답할 때까지 기다립니다(임베딩 모델 로딩 때문에 20초 안팎).
     대화 이력은 임시 DB에 쓰게 해서, 테스트 질문이 실제 data/chat_log.db에 섞이지 않게 합니다.
     """
-    env = {**os.environ, "CHAT_LOG_DB_PATH": str(log_dir / "chat_log.db"), "PYTHONIOENCODING": "utf-8"}
+    # LLM_PROVIDER=none: 실제 LLM(Ollama 등)은 같은 질문에도 답하거나 거절해서 화면 테스트 결과가 실행마다 달라질 수 있음.
+    # 이 백엔드는 코드 회귀 검사용이라 LLM 없이 띄우고, LLM 답변 품질은 src/evaluation/answer_eval.py로 따로 잼.
+    env = {**os.environ, "CHAT_LOG_DB_PATH": str(log_dir / "chat_log.db"), "PYTHONIOENCODING": "utf-8", "LLM_PROVIDER": "none"}
     log = (log_dir / "backend.log").open("w", encoding="utf-8")
     proc = subprocess.Popen([sys.executable, "-m", "uvicorn", "src.api.main:app", "--port", "8000"],
                             cwd=PROJECT_ROOT, env=env, stdout=log, stderr=subprocess.STDOUT)
