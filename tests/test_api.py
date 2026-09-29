@@ -187,8 +187,9 @@ def test_programs(c: TestClient, real: AppResources) -> None:
     app.dependency_overrides.clear()
 
     paths = list(c.get("/openapi.json").json()["paths"])
-    check("OpenAPI: 엔드포인트 6개", paths == ["/chat", "/chat/history/{session_id}", "/programs/filters",
-                                          "/programs", "/programs/{program_id}", "/health"], paths)
+    # /sync/status는 2026-09-29 자동 갱신(src/sync)과 함께 추가. 웹 화면(web/)은 정적 파일이라 OpenAPI에 안 나옴
+    check("OpenAPI: 엔드포인트 7개", paths == ["/chat", "/chat/history/{session_id}", "/programs/filters",
+                                          "/programs", "/programs/{program_id}", "/sync/status", "/health"], paths)
 
 
 def main() -> int:

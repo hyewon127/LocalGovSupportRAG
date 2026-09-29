@@ -161,3 +161,15 @@ class HealthResponse(BaseModel):
     llm_enabled: bool
     llm_provider: str
     llm_model: str | None  # LLM을 끈 경우(LLM_PROVIDER=none)나 Ollama에 받은 모델이 없으면 None
+
+
+class SyncStatus(BaseModel):
+    """
+    기업마당 자동 갱신(src/sync/sync_bizinfo.py)의 실행 기록 (data/sync_state.json 그대로).
+    실행 1건: started_at, finished_at, status(success/failed), listed(API 목록 수), new_found, added_programs,
+    added_chunks, index_total, error 등. 필드가 늘어나도 화면이 깨지지 않게 dict로 둡니다.
+    """
+    has_run: bool
+    last_run: dict | None = None
+    last_success: dict | None = None
+    recent_runs: list[dict] = []

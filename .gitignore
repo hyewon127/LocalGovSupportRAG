@@ -9,3 +9,7 @@ data/processed/
 확인용/
 # SQLite 대화 로그 (API 서버 실행 시 data/chat_log.db로 자동 생성되는 로컬 데이터 - WBS 6.2)
 *.db
+# 자동 갱신(src/sync) 실행 중에 생기는 로컬 파일 - 실행 기록, 잠금, 원자적 저장용 임시 파일
+data/sync_state.json
+data/.sync.lock
+*.tmp

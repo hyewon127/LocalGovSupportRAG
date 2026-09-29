@@ -47,7 +47,7 @@ from query_slots import fetch_candidate_values      # src/rag/query_slots.py
 
 from .chat_log import init_db
 from .dependencies import AppResources, get_resources
-from .routers import chat, programs
+from .routers import chat, programs, sync_status
 from .schemas import HealthResponse
 
 # 기존 src/ 스크립트들은 print로 진행 상황을 찍었지만, 서버는 여러 요청이 동시에 섞여 들어오므로
@@ -109,6 +109,7 @@ app = FastAPI(
 
 app.include_router(chat.router)
 app.include_router(programs.router)
+app.include_router(sync_status.router)
 
 
 # ── 공통 예외 처리 ───────────────────────────────────────────────────
