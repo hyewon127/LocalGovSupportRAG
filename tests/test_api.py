@@ -207,8 +207,10 @@ def test_programs(c: TestClient, real: AppResources) -> None:
 
     paths = list(c.get("/openapi.json").json()["paths"])
     # /sync/status는 2026-09-29 자동 갱신(src/sync)과 함께 추가. 웹 화면(web/)은 정적 파일이라 OpenAPI에 안 나옴
-    check("OpenAPI: 엔드포인트 7개", paths == ["/chat", "/chat/history/{session_id}", "/programs/filters",
-                                          "/programs", "/programs/{program_id}", "/sync/status", "/health"], paths)
+    # /review/*는 같은 날 대화 기록 검토 화면(web/review.html)과 함께 추가
+    check("OpenAPI: 엔드포인트 10개", paths == ["/chat", "/chat/history/{session_id}", "/programs/filters",
+                                           "/programs", "/programs/{program_id}", "/sync/status", "/review/summary",
+                                           "/review/chats", "/review/chats/{chat_id}", "/health"], paths)
 
 
 def main() -> int:

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>대화 기록 검토</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f5bd3'/%3E%3Cpath d='M9 11h14M9 16h14M9 21h9' stroke='white' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="review.css">
+</head>
+<body>
+  <!-- 대화 기록 검토 (2026-09-29). 챗봇에 실제로 들어온 질문과 답을 보고 "잘 답했나"를 판정해서 남기는 화면.
+       데이터: TB_CHAT_LOG(대화 원본) + TB_CHAT_REVIEW(판정) - src/api/chat_log.py, API는 src/api/routers/review.py -->
+  <div class="review-page">
+    <header class="review-top">
+      <div>
+        <h1>대화 기록 검토</h1>
+        <p class="muted" id="summary-note">챗봇에 들어온 질문과 답변을 보고 잘 답했는지 판정해요.</p>
+      </div>
+      <a class="button secondary" href="/">챗봇으로 돌아가기</a>
+    </header>
+
+    <section class="tiles" aria-label="요약">
+      <div class="tile"><span>전체 대화</span><b id="t-total">-</b><small id="t-days">&nbsp;</small></div>
+      <div class="tile"><span>정상 답변</span><b id="t-ok">-</b><small id="t-ok-rate">&nbsp;</small></div>
+      <div class="tile"><span>근거 없음</span><b id="t-noev">-</b><small>공고를 못 찾아 답하지 않음</small></div>
+      <div class="tile"><span>답변 실패</span><b id="t-fail">-</b><small>규칙 위반·LLM 오류·LLM 꺼짐</small></div>
+      <div class="tile"><span>사람 판정</span><b id="t-reviewed">-</b><small id="t-verdicts">&nbsp;</small></div>
+      <div class="tile"><span>응답 시간</span><b id="t-avg">-</b><small id="t-p95">&nbsp;</small></div>
+    </section>
+
+    <section class="status-bar-wrap" aria-label="상태별 비율">
+      <div id="status-bar" class="status-bar"></div>
+      <div id="status-legend" class="legend"></div>
+    </section>
+
+    <section class="filters" aria-label="필터">
+      <label>상태
+        <select id="f-status">
+          <option value="">전체</option>
+          <option value="ok">정상 답변</option>
+          <option value="no_evidence">근거 없음</option>
+          <option value="ungrounded">규칙 위반</option>
+          <option value="llm_error">LLM 오류</option>
+          <option value="llm_unavailable">LLM 꺼짐</option>
+        </select>
+      </label>
+      <label>판정
+        <select id="f-verdict">
+          <option value="">전체</option>
+          <option value="none">아직 안 함</option>
+          <option value="good">좋음</option>
+          <option value="bad">나쁨</option>
+        </select>
+      </label>
+      <label class="grow">검색
+        <input id="f-query" type="search" placeholder="질문이나 답변에 들어간 말" maxlength="100">
+      </label>
+    </section>
+
+    <p id="list-count" class="muted" aria-live="polite"></p>
+    <div class="list" id="chat-list" role="list"></div>
+    <button type="button" id="more" class="button secondary more" hidden>더 보기</button>
+  </div>
+
+  <div id="scrim" class="scrim" hidden></div>
+  <aside id="detail" class="sheet review-detail" role="dialog" aria-modal="true" aria-labelledby="detail-title" hidden>
+    <div class="sheet-header">
+      <h2 id="detail-title">대화 상세</h2>
+      <button type="button" class="icon-button" data-close aria-label="닫기">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div id="detail-body" class="sheet-body"></div>
+  </aside>
+
+  <script type="module" src="review.js"></script>
+</body>
+</html>

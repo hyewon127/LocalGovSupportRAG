@@ -48,7 +48,8 @@ def test_serving() -> None:
     page = requests.get(f"{API}/", timeout=10)
     check("GET / -> index.html", page.ok and "text/html" in page.headers.get("content-type", "") and 'id="messages"' in page.text,
           page.status_code)
-    for asset, kind in (("app.js", "javascript"), ("chat-format.js", "javascript"), ("style.css", "css")):
+    for asset, kind in (("app.js", "javascript"), ("chat-format.js", "javascript"), ("style.css", "css"),
+                        ("review.html", "html"), ("review.js", "javascript"), ("review.css", "css")):
         r = requests.get(f"{API}/{asset}", timeout=10)
         check(f"GET /{asset} -> {kind}", r.ok and kind in r.headers.get("content-type", ""), r.headers.get("content-type"))
     health = requests.get(f"{API}/health", timeout=10)

@@ -45,6 +45,7 @@ SUITES = [
     ("test_ui_backend_integration.py", "backend", False),
     ("test_web_ui.py", "backend", False),
     ("test_sync.py", "none", False),
+    ("test_review.py", "none", False),
 ]
 
 

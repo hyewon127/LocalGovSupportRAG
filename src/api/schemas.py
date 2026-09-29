@@ -173,3 +173,31 @@ class SyncStatus(BaseModel):
     last_run: dict | None = None
     last_success: dict | None = None
     recent_runs: list[dict] = []
+
+
+class ReviewItem(ChatLogItem):
+    """대화 1건 + 사람의 판정 (검토 화면 web/review.html의 한 행). 판정 전이면 verdict=None."""
+    verdict: Literal["good", "bad"] | None = None
+    note: str = ""
+    reviewed_at: datetime | None = None
+
+
+class ReviewListResponse(BaseModel):
+    total: int  # 필터 조건에 맞는 전체 건수 (items는 그중 한 페이지)
+    items: list[ReviewItem]
+
+
+class ReviewSummary(BaseModel):
+    total: int
+    by_status: dict[str, int]          # {"ok": 10, "no_evidence": 3, ...}
+    reviewed: int
+    good: int
+    bad: int
+    avg_response_ms: int | None
+    p95_response_ms: int | None
+    by_day: list[dict]                 # [{"date": "2026-09-29", "count": 13}, ...] 한국 날짜 기준
+
+
+class ReviewRequest(BaseModel):
+    verdict: Literal["good", "bad"]
+    note: str = Field("", max_length=500)
