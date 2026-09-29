@@ -14,7 +14,9 @@
 #   - LLM은 가짜(FakeLLM)로 바꿉니다. 키가 없어도 ok/ungrounded/llm_error 경로를 확인할 수 있고, 실제 LLM은
 #     답이 매번 달라서 테스트 결과가 흔들리기 때문입니다. dependencies.get_resources를 덮어써서 끼워 넣습니다.
 #   - 대화 이력은 임시 DB 파일에 저장해서 실제 data/chat_log.db를 더럽히지 않습니다.
-#   - 개수 기대값(사업 491건, 창업 41건 등)은 2026-09-22 인덱스(3,884청크) 기준입니다. 재색인하면 바뀔 수 있습니다.
+#   - 개수 기대값(사업 수, 창업 건수 등)은 data/processed/chunks.json에서 직접 계산합니다(expected_counts).
+#     [2026-09-29] 원래는 9/22 인덱스 기준 숫자(사업 491건, 창업 41건)를 박아 뒀는데, 자동 갱신(src/sync)으로 공고가
+#     650건이 되자 5개 검사가 실패했습니다. 데이터가 매일 바뀌는 구조에서는 'API가 산출물 파일과 같은 답을 주는가'를 봐야 합니다.
 
 import os
 import sqlite3
@@ -145,31 +147,48 @@ def test_chat(c: TestClient, real: AppResources) -> None:
     app.dependency_overrides.clear()
 
 
+def expected_counts() -> dict:
+    """청크 파일 기준 사업 단위 집계 - /programs가 돌려줘야 할 값 (test_data_pipeline.py가 파일=색인임을 따로 검증)."""
+    import json
+    chunks = json.loads((PROJECT_ROOT / "data" / "processed" / "chunks.json").read_text(encoding="utf-8"))
+    programs = {c["program_id"]: c for c in chunks}  # 사업 정보는 같은 사업의 모든 청크에서 같음 (WBS 6 확인)
+    names = [p["program_name"] for p in programs.values()]
+    return {
+        "total": len(programs),
+        "startup_category": sum(1 for p in programs.values() if p["category"] == "창업"),
+        "startup_in_name": sum(1 for n in names if "창업" in n),
+        "ai_in_name": sum(1 for n in names if "ai" in n.lower()),
+    }
+
+
 def test_programs(c: TestClient, real: AppResources) -> None:
     print("\n── /programs (WBS 6.3) ──")
+    exp = expected_counts()
     f = c.get("/programs/filters").json()
     check("filters: 지역/분야/대상 선택지", f["regions"] == ["서울"] and len(f["categories"]) == 8 and len(f["targets"]) == 7)
 
     r = c.get("/programs").json()
     ids = [i["program_id"] for i in r["items"]]
-    check("목록: total은 사업 수(491, 청크 수 아님)", r["total"] == 491, r["total"])
+    check(f"목록: total은 사업 수({exp['total']}, 청크 수 아님)", r["total"] == exp["total"], r["total"])
     check("목록: 기본 20건, 같은 사업 중복 없음", len(ids) == 20 and len(set(ids)) == 20)
     dated = [i["apply_end"] for i in r["items"] if i["apply_end"]]
     check("목록: 마감일 내림차순", dated == sorted(dated, reverse=True))
 
     all_ids: set[str] = set()
-    for page in range(1, 6):
+    pages = -(-exp["total"] // 100)  # 올림 나눗셈
+    for page in range(1, pages + 1):
         all_ids |= {i["program_id"] for i in c.get("/programs", params={"size": 100, "page": page}).json()["items"]}
-    check("페이지: 5페이지 합치면 491개 고유 사업(겹침/누락 없음)", len(all_ids) == 491, len(all_ids))
-    last = [i["apply_end"] for i in c.get("/programs", params={"size": 100, "page": 5}).json()["items"]]
+    check(f"페이지: {pages}페이지 합치면 {exp['total']}개 고유 사업(겹침/누락 없음)", len(all_ids) == exp["total"], len(all_ids))
+    last = [i["apply_end"] for i in c.get("/programs", params={"size": 100, "page": pages}).json()["items"]]
     check("정렬: 마감일 없는 사업은 맨 뒤", last[-1] is None and all(e is None for e in last[last.index(None):]))
 
     r = c.get("/programs", params={"category": "창업", "size": 100}).json()
-    check("필터: 창업 41건, 전부 창업", r["total"] == 41 and all(i["category"] == "창업" for i in r["items"]), r["total"])
+    check(f"필터: 창업 {exp['startup_category']}건, 전부 창업", r["total"] == exp["startup_category"] and all(i["category"] == "창업" for i in r["items"]), r["total"])
     r = c.get("/programs", params={"q": "창업", "size": 100}).json()
-    check("부분 검색: '창업' 31건(붙은 단어 포함)", r["total"] == 31 and all("창업" in i["program_name"] for i in r["items"]),
+    check(f"부분 검색: '창업' {exp['startup_in_name']}건(붙은 단어 포함)", r["total"] == exp["startup_in_name"] and all("창업" in i["program_name"] for i in r["items"]),
           r["total"])
-    check("부분 검색: 대소문자 무시(ai -> AI 22건)", c.get("/programs", params={"q": "ai"}).json()["total"] == 22)
+    check(f"부분 검색: 대소문자 무시(ai -> AI {exp['ai_in_name']}건)",
+          c.get("/programs", params={"q": "ai"}).json()["total"] == exp["ai_in_name"])
     check("부분 검색: '*'는 와일드카드가 아니라 글자 그대로", c.get("/programs", params={"q": "*"}).json()["total"] == 0)
 
     d = c.get("/programs/PBLN_000000000125563").json()
