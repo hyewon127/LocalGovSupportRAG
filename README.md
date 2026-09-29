@@ -94,6 +94,7 @@ LocalGovSupportRAG/
 │   │   └── routers/                  #   program_service / routers(chat, programs)
 │   └── evaluation/                   # [WBS 7] metrics, retrieval_eval, answer_eval
 ├── ui/                               # [WBS 6] Streamlit: app.py, api_client.py
+├── scripts/                          # [WBS 9] start_chatbot / stop_chatbot (.bat 더블클릭 실행)
 ├── tests/                            # [WBS 6~8] run_all.py + 테스트 8종
 ├── data/
 │   ├── raw/, processed/              # 수집·가공 산출물 (git 제외)
@@ -137,6 +138,11 @@ LocalGovSupportRAG/
 ```
 
 ### 4.3 서비스 실행
+**한 번에 실행:** `scripts\start_chatbot.bat`(더블클릭 가능)이 OpenSearch → 백엔드 → 화면을 순서대로 띄우고 브라우저를 엽니다.
+이미 떠 있는 서비스는 건너뛰고, 로그는 `logs\`에 남습니다. 종료는 `scripts\stop_chatbot.bat`.
+OpenSearch 설치 경로가 다르면 환경변수 `OPENSEARCH_HOME`을 설정하세요. 따라 해볼 질문은 [데모 시나리오](docs/demo_scenario.md)에 있습니다.
+
+**직접 실행:**
 ```
 .venv\Scripts\python.exe -m uvicorn src.api.main:app --port 8000    # 백엔드 (준비까지 약 20초)
 .venv\Scripts\python.exe -m streamlit run ui/app.py                 # 화면 -> http://localhost:8501
@@ -228,5 +234,6 @@ OpenSearch를 켜둔 상태에서 명령 하나로 전체를 돌립니다. UI �
 ## 9. 문서
 
 - [평가 리포트](docs/evaluation_report.md) - 평가 설계, 방식 비교, 가드레일 분석, 한계
+- [데모 시나리오](docs/demo_scenario.md) - 시연 순서와 실측 결과 (성공 사례 + 한계 사례)
 - 기획서·요구사항 정의서·테이블정의서·화면정의서·분석모델 정의서·WBS는 레포 밖(로컬 산출물 폴더)에 있습니다.
   - 테이블정의서와 달라진 점: `TB_CHAT_LOG`에 `STATUS` 컬럼 추가 (평가에서 정상 답변/근거 없음을 구분하기 위함 - 문서 갱신 필요)
